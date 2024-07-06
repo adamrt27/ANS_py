@@ -10,9 +10,11 @@ This implementation is based on the following resources:
 * The following [medium article](https://medium.com/@bredelet/understanding-ans-coding-through-examples-d1bebfc7e076)
 * This python implementation of [tANS](https://github.com/GarethCa/Py-tANS/tree/master?tab=readme-ov-file)
     * My implementation is very similar to this code, but is written to be more readable and fixes some of the small bugs in the original code
-## Main Code
+## Code
 
 The main code can be found in the [`tANS.ipynb`](https://github.com/adamrt27/tANS/blob/main/tANS.ipynb).
+
+I am working on creating a Python package for this code, and the functions for that package can be found in the [Functions](https://github.com/adamrt27/tANS/tree/main/Functions) folder.
 
 ## Next Steps
 
