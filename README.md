@@ -10,6 +10,8 @@ This implementation is based on the following resources:
 * The following [medium article](https://medium.com/@bredelet/understanding-ans-coding-through-examples-d1bebfc7e076)
 * This python implementation of [tANS](https://github.com/GarethCa/Py-tANS/tree/master?tab=readme-ov-file)
     * My implementation is very similar to this code, but is written to be more readable and fixes some of the small bugs in the original code
+* This [blog post](https://kedartatwawadi.github.io/post--ANS/) explaining ANS
+
 ## Code
 
 The main code can be found in the [`tANS.ipynb`](https://github.com/adamrt27/tANS/blob/main/tANS.ipynb).
