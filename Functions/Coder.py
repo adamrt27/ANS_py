@@ -1,5 +1,5 @@
-import Decoder,Encoder
-
+import Decoder, Encoder
+import numpy
 class Coder:
     def __init__(self, s_list, L_s, fast = False):
         """Initializes the coder
@@ -70,17 +70,17 @@ class Coder:
         state, bitstream, orig_state = self.encode(data)
         res = self.decode(state, bitstream, orig_state)
         # if there is an error 
-        if res != data:
+        if res != list(data):
             print("Error in encoding and decoding")
             
         # compute how many bits saved
-        orig_bits = len(data) * Coder.calculate_bits(len(self.s_list))
+        orig_bits = len(list(data)) * Coder.calculate_bits(len(self.s_list))
         comp_bits = len(bitstream)
         
         if verbose:
             print("Original bits: %d, Compressed bits: %d, Saved: %d" % (orig_bits, comp_bits, orig_bits - comp_bits))
         
-        return res, orig_bits - comp_bits
+        return res, orig_bits / comp_bits
     
     def encode_decode_string(self, data):
         """Encodes and decodes the string data, and returns the decoded data

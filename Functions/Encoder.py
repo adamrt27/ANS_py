@@ -1,5 +1,6 @@
 import math
-
+import pandas as pd
+import numpy as np
 # encoding
 class Encoder:
     def __init__(self, L, s_list, L_s, spread):
@@ -133,14 +134,14 @@ class Encoder:
         state = 0
         
         # initialize the state
-        bits, state = self.encode_step(state, self.s_list.index(data[0]))
+        bits, state = self.encode_step(state, np.where(self.s_list == data[0])[0][0])
         
         # save original state
         state_orig = state
         
         for s in data:
             s_orig = s
-            s = self.s_list.index(s)
+            s = np.where(self.s_list == s)[0][0]
             bits, state = self.encode_step(state, s)
             bitstream.extend(bits)
             

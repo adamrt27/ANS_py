@@ -1,7 +1,7 @@
 import numpy as np 
 import math
 import pandas as pd
-import SpreadFunction
+from SpreadFunction import SpreadFunction
 # Building Decoding table
 
 class DecodeTableColumn:
