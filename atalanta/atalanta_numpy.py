@@ -110,7 +110,7 @@ def main():
         print ("COMPSTATS: ", inbits, " (in_bits) ", apack_bits, " (apack_bits) ", apack_bits/inbits, " (comp_ratio) ", apack_bits/value_cnt, " (bits_per_value) ", symbol_bits, " (symbol bits) ", offset_bits, " (offset bits) ", end-start, " (search time) " )
 
     # write output to file
-    outfile = infile + ".apack"
+    outfile = infile.split(".")[0] + ".apack"
     with open(outfile, "w") as f:
         for pte in pt:
             f.write(str(pte[0]) + " " + str(pte[1]) + " " + str(pte[2]) + " " + str(pte[3]) + " " + str(pte[4]) + "\n")
