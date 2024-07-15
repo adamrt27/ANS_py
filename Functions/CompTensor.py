@@ -7,6 +7,7 @@ class CompPoint:
         self.point = point
         self.symbol = self.get_symbol()
         self.off = self.get_off()
+        self.OL = self.s_tab["OL"][self.symbol]
         
     def __str__(self):
         # String representation of CompPoint
@@ -15,9 +16,14 @@ class CompPoint:
     def get_symbol(self):
         # Use binary search to find the symbol
         vmin = self.s_tab["vmin"]
-        idx = bisect.bisect_left(vmin, self.point)
-        return idx - 1 if idx > 0 else 0
-    
+        idx = bisect.bisect_right(vmin, self.point) - 1
+        
+        # check if the point is in the range of the symbol
+        # if self.point == vmin[idx]:
+        #     idx += 1
+            
+        return idx#idx - 1 > 0 and idx - 1 or 0
+            
     def get_off(self):
         # Calculate the offset from the symbol
         return self.point - self.s_tab["vmin"][self.symbol]
