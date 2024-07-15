@@ -24,12 +24,10 @@ print("Importing data")
 data = [np.load(f"{d}input_{i}.npy") for i in range(range_[0],range_[1])]
 
 # converting each data point to a symbol, offset pair
-print("Converting data to CompTensors")
-
 comp_tensors = []
-for i, dat in enumerate(data):
-    print(f"\tProcessing data {i}")
-    comp_tensors.append([CompTensor.CompTensor(d,s_tabs[i]) for d in dat])
+for i, dat in enumerate(tqdm(data, desc="Converting Data to CompTensors")):
+    comp_tensors.append([CompTensor.CompTensor(d, s_tabs[i]) for d in dat])
+
 
 # Getting freqs, must be a power of 2
 print("Getting frequencies APack")
@@ -117,11 +115,6 @@ for i in tqdm(range(len(freqs)), desc="Compressing Layers"):
     avg_comp_ratio = np.mean(comp_ratios)
     avg_bp_sym = np.mean(bp_sym)
     
-    tqdm.write(f"\tAverage run time taken: {avg_run_time:.6f} seconds")
-    tqdm.write(f"\tAverage build time taken: {avg_build_time:.6f} seconds")
-    tqdm.write(f"\tAverage compression ratio: {avg_comp_ratio:.6f}")
-    tqdm.write(f"\tAverage bits per symbol: {avg_bp_sym:.6f}")
-    
     # add stats to all lists
     all_run_times.append(run_times)
     all_build_times.append(build_times)
@@ -140,9 +133,6 @@ stats_apack = pd.DataFrame({"Layer": [i for i in range(len(freqs))],
 
 # save the stats to a csv file
 stats_apack.to_csv(f"{d}stats_activations_apack.csv", index = False)
-
-# get average compressino ration
-print("Average Compression Ratio Activations APack:", np.mean(stats_apack["Compression Ratio"]))
 
 # Calculate frequency of each uint8 value
 def calculate_frequency(array):
@@ -174,20 +164,16 @@ all_build_times = []
 all_comp_ratios = []
 all_bps = []
 
-for i in range(len(freqs)):
-    print(f"\tCompressing Layer {i}")
-
+for i in tqdm(range(len(freqs)), desc="Compressing Layers"):
     run_times = []
     build_times = []
     comp_ratios = []
     bp_sym = []
 
-    for j in range(len(data[i])):
-        print(f"\t\tCompressing tensor {j}")
-        
+    for j in tqdm(range(len(data[i])), desc=f"Layer {i}: Compressing Tensors", leave=False):
         time_start = time.time()
         
-        c = Coder.Coder(sum(freqs[i]), [i for i in range(len(freqs[i]))], freqs[i], fast = False)
+        c = Coder.Coder(sum(freqs[i]), [k for k in range(len(freqs[i]))], freqs[i], fast=False)
         
         time_end = time.time()
         build_time_taken = time_end - time_start
@@ -200,22 +186,21 @@ for i in range(len(freqs)):
         run_time_taken = time_end - time_start
 
         if out != msg:
-            print("Error in encoding and decoding")
+            tqdm.write("Error in encoding and decoding")
             break
-        
         
         run_times.append(run_time_taken)
         build_times.append(build_time_taken)
         comp_ratios.append(len(msg) * nbits / comp_bits)
         bp_sym.append(comp_bits / len(msg))
         
-    # print average stats
-    print("\t\tAverage run time taken: %f seconds" % np.mean(run_times))
-    print("\t\tAverage build time taken: %f seconds" % np.mean(build_times))
-    print("\t\tAverage compression ratio: %f" % np.mean(comp_ratios))
-    print("\t\tAverage bits per symbol: %f" % np.mean(bp_sym))
+    # Print average stats
+    avg_run_time = np.mean(run_times)
+    avg_build_time = np.mean(build_times)
+    avg_comp_ratio = np.mean(comp_ratios)
+    avg_bp_sym = np.mean(bp_sym)
     
-    # add stats to all lists
+    # Add stats to all lists
     all_run_times.append(run_times)
     all_build_times.append(build_times)
     all_comp_ratios.append(comp_ratios)
@@ -231,9 +216,6 @@ stats_256 = pd.DataFrame({"Layer": [i for i in range(len(freqs))],
 
 # save 
 stats_256.to_csv(f"{d}stats_activations_256.csv", index = False)
-
-# get average compressino ration
-print("Average Compression Ratio Activations 256:", np.mean(stats_256["Compression Ratio"]))
 
 # print both 
 print("Average Compression Ratio Activations APack:", np.mean(stats_apack["Compression Ratio"]))
