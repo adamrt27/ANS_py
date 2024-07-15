@@ -1,9 +1,11 @@
 import bisect
 
 class CompPoint:
-    def __init__(self, point, s_tab):
+    def __init__(self, point, s_tab, dtype = "u"):
         # Initialize CompPoint with given point and symbol table (s_tab)
+        self.dtype = dtype
         self.s_tab = s_tab
+
         self.point = point
         self.symbol = self.get_symbol()
         self.off = self.get_off()
@@ -16,7 +18,11 @@ class CompPoint:
     def get_symbol(self):
         # Use binary search to find the symbol
         vmin = self.s_tab["vmin"]
-        idx = bisect.bisect_right(vmin, self.point) - 1
+        if self.dtype == "s":
+            temp_point = self.point + 128
+            idx = bisect.bisect_right(vmin, temp_point) - 1
+        else:
+            idx = bisect.bisect_right(vmin, self.point) - 1
         
         # check if the point is in the range of the symbol
         # if self.point == vmin[idx]:
@@ -26,7 +32,10 @@ class CompPoint:
             
     def get_off(self):
         # Calculate the offset from the symbol
-        return self.point - self.s_tab["vmin"][self.symbol]
+        if self.dtype == "s":
+            return self.point - self.s_tab["vmin"][self.symbol] + 128
+        else:
+            return self.point - self.s_tab["vmin"][self.symbol]
 
 class CompTensor:
     def __init__(self, tensor, s_tab):

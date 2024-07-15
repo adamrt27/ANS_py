@@ -1,7 +1,7 @@
 from Functions import Decoder, Encoder
 
 class Coder:
-    def __init__(self, L, s_list, L_s, fast = False):
+    def __init__(self, L, s_list, L_s, fast = False, dtype = "s"):
         """Initializes the coder
 
         Args:
@@ -11,6 +11,7 @@ class Coder:
         self.s_list = s_list
         self.L_s = L_s
         self.L = L
+        self.dtype = dtype
                         
         # initialize the decoding table
         self.decoding_table = Decoder.DecodeTable(self.L, s_list, L_s, fast= fast)
