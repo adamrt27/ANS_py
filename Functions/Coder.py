@@ -1,7 +1,7 @@
 import Decoder, Encoder
-import numpy
+
 class Coder:
-    def __init__(self, s_list, L_s, fast = False):
+    def __init__(self, L, s_list, L_s, fast = False):
         """Initializes the coder
 
         Args:
@@ -10,7 +10,7 @@ class Coder:
         """
         self.s_list = s_list
         self.L_s = L_s
-        self.L = sum(L_s)
+        self.L = L
                         
         # initialize the decoding table
         self.decoding_table = Decoder.DecodeTable(self.L, s_list, L_s, fast= fast)
@@ -28,22 +28,21 @@ class Coder:
             data (list): a list of symbols to encode
 
         Returns:
-            list: returns the final state in [0,L) and the bitstream
+            list: returns the bitstream
         """
-        return self.encoder.encode(data)[1] - self.L, self.encoder.encode(data)[0], self.encoder.encode(data)[2]
+        return self.encoder.encode(data)
     
-    def decode(self, state, bitstream, orig_state):
+    def decode(self, bitstream):
         """Decodes the bitstream using the decoding table
 
         Args:
-            state (int): the initial state of the decoding process
             bitstream (list): the bitstream to decode
 
         Returns:
             list: returns the decoded symbols
         """
         # note we reverse the decoded symbols since the bitstream is decoded in opposite order
-        res = self.decoding_table.decode(state, bitstream, orig_state)
+        res = self.decoding_table.decode(bitstream)
         res.reverse()
         return res
     
@@ -67,14 +66,14 @@ class Coder:
             list: returns the decoded symbols
         """
         
-        state, bitstream, orig_state = self.encode(data)
-        res = self.decode(state, bitstream, orig_state)
+        bitstream = self.encode(data)
+        res = self.decode(bitstream)
         # if there is an error 
-        if res != list(data):
+        if res != data:
             print("Error in encoding and decoding")
             
         # compute how many bits saved
-        orig_bits = len(list(data)) * Coder.calculate_bits(len(self.s_list))
+        orig_bits = len(data) * Coder.calculate_bits(len(self.s_list))
         comp_bits = len(bitstream)
         
         if verbose:
@@ -92,4 +91,5 @@ class Coder:
             list: returns the decoded symbols
         """
         data_t = list(data)
-        return "".join(self.encode_decode(data_t))
+        print(data_t)
+        return "".join(self.encode_decode(data_t)[0])

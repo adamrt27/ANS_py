@@ -2,7 +2,6 @@ import numpy as np
 import math
 import pandas as pd
 from SpreadFunction import SpreadFunction
-# Building Decoding table
 
 class DecodeTableColumn:
     def __init__(self, x, sym, nbBits, newX):
@@ -187,12 +186,11 @@ class DecodeTable:
         
         return s_decode, next_state, bitstream
     
-    def decode(self, state, bitstream, state_orig):
+    def decode(self, bitstream):
         """decode the entire bitstream, given the initial state
            NOTE: the bitstream is decoded right to left
 
         Args:
-            state (int): the initial state of the decoding process, in the range [0, L)
             bitstream (list): the bitstream to decode
 
         Returns:
@@ -202,11 +200,19 @@ class DecodeTable:
         # initialize empty list to store decoded symbols
         decoded = []
         
+        # get the original state, by reading log2(L) bits from the bitstream
+        state_orig, bitstream = self.read_bit(bitstream, int(math.log2(self.L)))
+        state_orig = int("".join(str(i) for i in state_orig), 2) # convert bits to int
+        
+        # get the initial state, by reading log2(L) bits from the bitstream
+        state, bitstream = self.read_bit(bitstream, int(math.log2(self.L)))
+        state = int("".join(str(i) for i in state), 2) # convert bits to int
+                
         # iterate over the bitstream, decoding each symbol
         # stops when the bitstream is empty and the state is equal to the original state
         # note: we do state_orig - self.L because the encoding table is from L to 2L
         # and we decoding is from 0 to L
-        while len(bitstream) > 0 or state != (state_orig - self.L):
+        while len(bitstream) > 0 or state != (state_orig):
             # decode a single symbol
             s_decode, state, bitstream = self.decode_step(state, bitstream)
             # append the decoded symbol to the list
