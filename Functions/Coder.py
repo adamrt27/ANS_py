@@ -64,6 +64,7 @@ class Coder:
 
         Returns:
             list: returns the decoded symbols
+            int: returns the number of bits in the bitstream
         """
         
         bitstream = self.encode(data)
@@ -79,7 +80,7 @@ class Coder:
         if verbose:
             print("Original bits: %d, Compressed bits: %d, Saved: %d" % (orig_bits, comp_bits, orig_bits - comp_bits))
         
-        return res, orig_bits / comp_bits
+        return res, comp_bits
     
     def encode_decode_string(self, data):
         """Encodes and decodes the string data, and returns the decoded data
