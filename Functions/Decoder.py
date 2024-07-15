@@ -1,7 +1,7 @@
 import numpy as np 
 import math
 import pandas as pd
-from SpreadFunction import SpreadFunction
+from Functions.SpreadFunction import SpreadFunction
 
 class DecodeTableColumn:
     def __init__(self, x, sym, nbBits, newX):

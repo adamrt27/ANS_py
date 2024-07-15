@@ -1,6 +1,7 @@
 # Generate random string
 import random
 import numpy as np
+import math
 
 def generate_random_string(alphabet, frequencies):
     population = []
@@ -121,3 +122,47 @@ def generate_random_array_uint8(alphabet, frequencies):
     
     # Return the shuffled numpy array
     return population
+
+def next_lower_power_of_2(x):
+    return 2**(math.floor(math.log2(x)))
+
+def rescale_list_to_power_of_2(input_list, max_sum):
+    current_sum = sum(input_list)
+    if current_sum == 0:
+        raise ValueError("The sum of the list elements is zero, cannot rescale.")
+    
+    if max_sum < 1:
+        raise ValueError("max_sum must be greater than 0.")
+    
+    # Find the nearest power of 2 less than or equal to max_sum
+    nearest_power_of_2 = next_lower_power_of_2(max_sum)
+    
+    # Calculate the scaling factor
+    scaling_factor = nearest_power_of_2 / current_sum
+    
+    # Scale the list elements and round them to integers, ensuring no zero values
+    scaled_list = [max(1, int(round(x * scaling_factor))) for x in input_list]
+    
+    # Adjust the sum to be exactly the nearest power of 2
+    difference = nearest_power_of_2 - sum(scaled_list)
+    
+    # Adjust the elements to ensure the sum is correct and no value is zero
+    while difference != 0:
+        if difference > 0:
+            # Find the index to increment
+            index_to_adjust = scaled_list.index(min(scaled_list))
+            scaled_list[index_to_adjust] += 1
+            difference -= 1
+        elif difference < 0:
+            # Find the index to decrement (but ensure no value goes below 1)
+            index_to_adjust = scaled_list.index(max(scaled_list))
+            if scaled_list[index_to_adjust] > 1:
+                scaled_list[index_to_adjust] -= 1
+                difference += 1
+            else:
+                # If we can't decrement, we need to increment another value to balance
+                index_to_adjust = scaled_list.index(min(scaled_list))
+                scaled_list[index_to_adjust] += 1
+                difference -= 1
+    
+    return scaled_list
