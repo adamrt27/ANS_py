@@ -84,34 +84,34 @@ for i in tqdm(range(len(freqs)), desc="Compressing Layers"):
     build_times = []
     comp_ratios = []
     bp_sym = []
+    j = 0
 
-    for j in tqdm(range(len(comp_tensors[i])), desc=f"Layer {i}: Compressing Tensors", leave=False):
-        # Compressing the symbols
-        time_start = time.time()
-        
-        c = Coder.Coder(sum(freqs[i]), [i for i in range(len(freqs[i]))], freqs[i], fast=False)
-        
-        time_end = time.time()
-        build_time_taken = time_end - time_start
+    # Compressing the symbols
+    time_start = time.time()
+    
+    c = Coder.Coder(sum(freqs[i]), [i for i in range(len(freqs[i]))], freqs[i], fast=False)
+    
+    time_end = time.time()
+    build_time_taken = time_end - time_start
 
-        msg = [p.symbol for p in comp_tensors[i][j].points]
+    msg = [p.symbol for p in comp_tensors[i][j].points]
 
-        time_start = time.time()
-        out, comp_bits = c.encode_decode(msg)
-        time_end = time.time()
-        run_time_taken = time_end - time_start
-        
-        # Factoring in the offset bits  
-        total_comp_bits = comp_bits + len(offset_stream[i][j])
+    time_start = time.time()
+    out, comp_bits = c.encode_decode(msg)
+    time_end = time.time()
+    run_time_taken = time_end - time_start
+    
+    # Factoring in the offset bits  
+    total_comp_bits = comp_bits + len(offset_stream[i][j])
 
-        if out != msg:
-            tqdm.write("Error in encoding and decoding")
-            break
-        
-        run_times.append(run_time_taken)
-        build_times.append(build_time_taken)
-        comp_ratios.append(len(msg) * nbits / total_comp_bits)
-        bp_sym.append(total_comp_bits / len(msg))
+    if out != msg:
+        tqdm.write("Error in encoding and decoding")
+        break
+    
+    run_times.append(run_time_taken)
+    build_times.append(build_time_taken)
+    comp_ratios.append(len(msg) * nbits / total_comp_bits)
+    bp_sym.append(total_comp_bits / len(msg))
         
     # Print average stats
     avg_run_time = np.mean(run_times)
@@ -161,7 +161,6 @@ freqs = [calculate_frequency(d) for d in data]
 
 # rescale the frequencies to a power of 2
 freqs = [Utils.rescale_list_to_power_of_2(freq, 2**10) for freq in freqs]
-print(sum(freqs[0]))
 
 import time
 print("Compressing Weights 256")

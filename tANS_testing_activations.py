@@ -153,7 +153,6 @@ freqs = [calculate_frequency(d) for d in data]
 
 # rescale the frequencies to a power of 2
 freqs = [Utils.rescale_list_to_power_of_2(freq, 2**10) for freq in freqs]
-print(sum(freqs[0]))
 
 import time
 print("Compressing Activations 256")
