@@ -1,7 +1,7 @@
 import numpy as np 
 import math
 import pandas as pd
-from Functions.SpreadFunction import SpreadFunction
+from . import SpreadFunction
 
 class DecodeTableColumn:
     def __init__(self, x, sym, nbBits, newX):
@@ -80,7 +80,7 @@ class DecodeTable:
         """
         
         symbol = [0 for i in range(self.L)]
-        spread = SpreadFunction.generate_N_iter([i/self.L for i in self.L_s], self.L)
+        spread = SpreadFunction.SpreadFunction.generate_N_iter([i/self.L for i in self.L_s], self.L)
         
         for X, e in enumerate(spread):
             if X < self.L:

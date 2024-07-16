@@ -1,6 +1,5 @@
 import math
 import pandas as pd
-import numpy as np
 
 class Encoder:
     def __init__(self, L, s_list, L_s, spread):

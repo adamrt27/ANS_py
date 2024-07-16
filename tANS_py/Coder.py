@@ -1,17 +1,18 @@
-import Decoder, Encoder
+from . import Decoder, Encoder
 
 class Coder:
-    def __init__(self, L, s_list, L_s, fast = False, dtype = "s"):
+    def __init__(self, L, s_list, L_s, fast = False):
         """Initializes the coder
 
         Args:
+            L (int): the sum of frequencies, also the length of the table
             s_list (list): list of symbols in the message
             L_s (list): list of frequencies of the symbols
+            fast (bool, optional): whether to use the fast spread function. Defaults to False.
         """
         self.s_list = s_list
         self.L_s = L_s
         self.L = L
-        self.dtype = dtype
                         
         # initialize the decoding table
         self.decoding_table = Decoder.DecodeTable(self.L, s_list, L_s, fast= fast)
