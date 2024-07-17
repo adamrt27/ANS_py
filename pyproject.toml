@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tANS_py"
-version = "0.1"
+version = "0.1.1"
 authors = [
     { name = "Adam Taback", email = "adamrtaback@gmail.com"},
 ]
@@ -20,3 +20,7 @@ dependencies = [
     "numpy",
     "pandas",
 ]
+
+[project.urls]
+Homepage = "https://pypi.org/project/tANS-py/"
+Repository = "https://github.com/adamrt27/tANS_py"
