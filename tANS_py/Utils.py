@@ -8,6 +8,10 @@ def next_power_of_2(x):
     # helper function to find the next power of 2
     return 1 if x == 0 else 2**((x - 1).bit_length())
 
+def next_lower_power_of_2(x):   
+    # helper function to find the next lower power of 2
+    return 2**(x - 1).bit_length()
+
 def generate_random_list_pow2(l, n):
     # Generates a list of random numbers with a length of `l` and a sum that is a power of 2.
     
