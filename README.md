@@ -1,7 +1,7 @@
 # tANS_py
 Tabled Asymmetric Numeral Systems Implementation in Python. 
 
-**Asymmetric Numeral Systems (ANS)** is a Entropy Coding compression technique created by Jarek Duda. This repository contains a Python implementation a version of the techinque that uses lookup table to store the state transitions (called **tANS**). It also contains code testing **tANS** on neural network traces, using 2 different methods of encoding the data (APack vs 256).
+**Asymmetric Numeral Systems (ANS)** is a Entropy Coding compression technique created by Jarek Duda. This repository contains a Python implementation a version of the techinque that uses lookup table to store the state transitions (called **tANS**).
 
 This implementation is based on the following resources: 
 
@@ -131,6 +131,9 @@ Utils.generate_random_list_target(length, n, target_sum)
 
 # rescales a list of numbers to sum to a power of 2 that is less than or equal to max sum
 Utils.rescale_list_to_power_of_2(input_list, max_sum)
+
+# generates a random string of length n using symbols from s with frequencies from freq
+Utils.generate_random_string(s, freq)
 ```
 
 # About

@@ -33,6 +33,8 @@ class DecodeTable:
             s_list (list): list of symbols in the message, for example (A,B,C)
             L_s (list): the frequency of each symbol in the message, for example (2,3,4)
         """
+        if L > 0 and (L & (L - 1)) != 0:
+            raise ValueError("L must be a power of 2")
         
         self.L = L
         self.s_list  = s_list

@@ -149,3 +149,19 @@ def rescale_list_to_power_of_2(input_list, max_sum):
                 difference -= 1
     
     return scaled_list
+
+def generate_random_string(alphabet, frequencies):
+    # Generates a random string based on the given alphabet and frequencies. Useful for testing.
+    population = []
+    
+    # Create the population list based on frequencies
+    for symbol, freq in zip(alphabet, frequencies):
+        population.extend([symbol] * freq)
+    
+    # Shuffle the population to ensure randomness
+    random.shuffle(population)
+    
+    # Join the list into a string
+    random_string = ''.join(population)
+    
+    return random_string

@@ -10,6 +10,9 @@ class Coder:
             L_s (list): list of frequencies of the symbols
             fast (bool, optional): whether to use the fast spread function. Defaults to False.
         """
+        if L > 0 and (L & (L - 1)) != 0:
+            raise ValueError("L must be a power of 2")
+        
         self.s_list = s_list
         self.L_s = L_s
         self.L = L
