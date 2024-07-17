@@ -3,28 +3,14 @@ import random
 import numpy as np
 import math
 
-def generate_random_string(alphabet, frequencies):
-    population = []
-    
-    # Create the population list based on frequencies
-    for symbol, freq in zip(alphabet, frequencies):
-        population.extend([symbol] * freq)
-    
-    # Shuffle the population to ensure randomness
-    random.shuffle(population)
-    
-    # Join the list into a string
-    random_string = ''.join(population)
-    
-    return random_string
-
-def generate_random_list(l, n):
-    return [random.randint(0, n) for _ in range(l)]
 
 def next_power_of_2(x):
+    # helper function to find the next power of 2
     return 1 if x == 0 else 2**((x - 1).bit_length())
 
-def generate_random_list2(l, n):
+def generate_random_list_pow2(l, n):
+    # Generates a list of random numbers with a length of `l` and a sum that is a power of 2.
+    
     if l <= 0:
         raise ValueError("Length of the list must be positive.")
     
@@ -110,23 +96,20 @@ def generate_random_list_target(l, n, target_sum):
 
     return scaled_list
 
-def generate_random_array_uint8(alphabet, frequencies):
-    # Convert the alphabet to uint8
-    alphabet = np.array(alphabet, dtype=np.uint8)
-    
-    # Create the population array based on frequencies
-    population = np.repeat(alphabet, frequencies)
-    
-    # Shuffle the population to ensure randomness
-    np.random.shuffle(population)
-    
-    # Return the shuffled numpy array
-    return population
-
-def next_lower_power_of_2(x):
-    return 2**(math.floor(math.log2(x)))
-
 def rescale_list_to_power_of_2(input_list, max_sum):
+    """Rescales a list of integers to have a sum that is the nearest power of 2 less than or equal to a specified value.
+
+    Args:
+        input_list (list): input list of integers to be rescaled
+        max_sum (int): the maximum sum of the rescaled list
+
+    Raises:
+        ValueError: if the sum of the input list is zero
+        ValueError: if the max_sum is less than 1
+
+    Returns:
+        list: the rescaled list of integers with the sum being the nearest power of 2 less than or equal to max_sum
+    """
     current_sum = sum(input_list)
     if current_sum == 0:
         raise ValueError("The sum of the list elements is zero, cannot rescale.")

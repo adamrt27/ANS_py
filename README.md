@@ -12,11 +12,18 @@ This implementation is based on the following resources:
     * My implementation is very similar to this code, but is written to be more readable and fixes some of the small bugs in the original code
 * This [blog post](https://kedartatwawadi.github.io/post--ANS/) explaining ANS
 
+# Limitations
+
+This implementation is not optimized for speed. It is meant to be a simple implementation that is easy to understand. 
+
+The main limitation of this implementation is that `L`, the table size, must be a power of 2.
+
 # Usage
+See [example.ipynb](https://github.com/adamrt27/ANS_py/blob/main/example.ipynb) for examples of all the things discussed below.
 
 ## `Coder`
 
-This is the main class that is used to encode and decode data. It is initialized with the table length (`L`), the list of symbols (`s_list`) and the list of frequencies (`L_s`). 
+This is the main class that is used to encode and decode data. It is initialized with the table length (`L`), the list of symbols (`s_list`) and the list of frequencies (`L_s`). See implemention in [Coder.py](https://github.com/adamrt27/ANS_py/blob/main/tANS_py/Coder.py).
 
 Example Usage:
 
@@ -62,5 +69,72 @@ Output:
 Comp Ratio: 1.359817660857606
 ```
 
-## 'Decoder'
+## Submodules of `Coder`
 
+### `DecodeTable`
+
+This class is used to decode an encoded message. It is initialized with the table length (`L`), the list of symbols (`s_list`) and the list of frequencies (`L_s`). See implemention in [Decoder.py](https://github.com/adamrt27/ANS_py/blob/main/tANS_py/Decoder.py)
+
+### `Encoder`
+
+This class is used to encode a message. It is initialized with the table length (`L`), the list of symbols (`s_list`) and the list of frequencies (`L_s`). See implemention in [Encoder.py](https://github.com/adamrt27/ANS_py/blob/main/tANS_py/Encoder.py)
+
+Example Usage of Submodules:
+
+```python
+# Testing code 
+import tANS_py.Decoder
+import tANS_py.Encoder
+
+# Define the alphabet and the frequency of each symbol
+s = ["A","B","C"]
+freq = [6, 2, 24] # note that the sum of freq must be a power of 2 (in this case 32)
+
+# Create the encoder and decoder
+t = tANS_py.Decoder.DecodeTable(sum(freq), s, freq, fast = False)
+g = tANS_py.Encoder.Encoder(sum(freq), s,freq,t.symbol_spread)
+
+# Create message
+msg = "CAACACCCCCCCCBCCCACCCACCCACCCBCC"
+msg_temp = list(msg)
+
+# Encode message
+bit = g.encode(msg_temp)
+
+# Decode message
+out = t.decode(bit)
+out.reverse() # reverse the list to get the original message, as the decoding function returns the message in reverse order
+print("Coding worked:", "".join(out) == msg)
+```
+
+Output:
+```output
+Coding worked: True
+```
+
+## `SpreadFunction.py`
+
+This module contains the spread function defined in [the original paper](https://arxiv.org/abs/1311.2540). It is automatically called by `Coder` and its submodules. See implemention in [SpreadFunction.py](https://github.com/adamrt27/ANS_py/blob/main/tANS_py/SpreadFunction.py).
+
+## `Utils.py`
+
+Contains utility functions for generating random data or rescaling frequencies for the coder. See implemention in [Utils.py](https://github.com/adamrt27/ANS_py/blob/main/tANS_py/Utils.py).
+
+Functions:
+```python
+from tANS_py import Utils
+# generates a list of length numbers that sum to a power of 2, with each number being randomly chosen between 1 and n
+Utils.generate_random_list_pow2(length, n) 
+
+# generates a list of length numbers that sum to a target sum, with each number being randomly chosen between 1 and n
+Utils.generate_random_list_target(length, n, target_sum)
+
+# rescales a list of numbers to sum to a power of 2 that is less than or equal to max sum
+Utils.rescale_list_to_power_of_2(input_list, max_sum)
+```
+
+# About
+
+This implementation was created by Adam Taback as part of a research project at the University of Toronto, aiming to use ANS to compress neural network traces.
+
+If you have any questions, reach out to me at adamrtaback@gmail.com.
