@@ -100,12 +100,14 @@ def generate_random_list_target(l, n, target_sum):
 
     return scaled_list
 
-def rescale_list_to_power_of_2(input_list, max_sum):
+def rescale_list_to_power_of_2(input_list, max_sum, max_sum_var = "max_sum", depth_limit=1000):
     """Rescales a list of integers to have a sum that is the nearest power of 2 less than or equal to a specified value.
 
     Args:
         input_list (list): input list of integers to be rescaled
         max_sum (int): the maximum sum of the rescaled list
+        max_sum_var (str, optional): the name of the variable corresponding to max_sum. Defaults to "max_sum". Helps in error messages.
+        depth_limit (int, optional): the maximum number of iterations to adjust the list. Defaults to 1000. If the depth limit is reached, an error is raised.
 
     Raises:
         ValueError: if the sum of the input list is zero
@@ -118,8 +120,8 @@ def rescale_list_to_power_of_2(input_list, max_sum):
     if current_sum == 0:
         raise ValueError("The sum of the list elements is zero, cannot rescale.")
     
-    if max_sum < 1:
-        raise ValueError("max_sum must be greater than 0.")
+    if max_sum < len(list(set(input_list))):
+        raise ValueError(f"{max_sum_var} must be greater than number of symbols.")
     
     # Find the nearest power of 2 less than or equal to max_sum
     nearest_power_of_2 = next_lower_power_of_2(max_sum)
@@ -133,8 +135,11 @@ def rescale_list_to_power_of_2(input_list, max_sum):
     # Adjust the sum to be exactly the nearest power of 2
     difference = nearest_power_of_2 - sum(scaled_list)
     
+    # set the depth limit to avoid infinite loop
+    depth = 0
     # Adjust the elements to ensure the sum is correct and no value is zero
-    while difference != 0:
+    while difference != 0 and depth < depth_limit:
+        depth += 1
         if difference > 0:
             # Find the index to increment
             index_to_adjust = scaled_list.index(min(scaled_list))
@@ -151,6 +156,9 @@ def rescale_list_to_power_of_2(input_list, max_sum):
                 index_to_adjust = scaled_list.index(min(scaled_list))
                 scaled_list[index_to_adjust] += 1
                 difference -= 1
+    
+    if depth == depth_limit:
+        raise ValueError(f"Reached depth limit. Could not rescale the list. Please increase {max_sum_var}")
     
     return scaled_list
 

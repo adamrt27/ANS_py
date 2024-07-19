@@ -95,6 +95,32 @@ class Coder:
 
         Returns:
             list: returns the decoded symbols
+            int: returns the number of bits in the bitstream
         """
         data_t = list(data)
-        return "".join(self.encode_decode(data_t)[0])
+        res = self.encode_decode(data_t)
+        return "".join(res[0]), res[1]
+    
+    def encode_string(self, data):
+        """Encodes the string data, and returns the bitstream
+
+        Args:
+            data (str): a string to encode
+
+        Returns:
+            list: returns the bitstream
+        """
+        data_t = list(data)
+        return self.encode(data_t)
+    
+    def decode_string(self, data):
+        """Decodes the bitstream, and returns the decoded string
+
+        Args:
+            data (list): the bitstream to decode
+
+        Returns:
+            str: returns the decoded string
+        """
+        res = self.decode(data)
+        return "".join(res)

@@ -21,120 +21,61 @@ The main limitation of this implementation is that `L`, the table size, must be 
 # Usage
 See [example.ipynb](https://github.com/adamrt27/ANS_py/blob/main/example.ipynb) for examples of all the things discussed below.
 
-## `Coder`
+## Main Workflow
 
-This is the main class that is used to encode and decode data. It is initialized with the table length (`L`), the list of symbols (`s_list`) and the list of frequencies (`L_s`). See implemention in [Coder.py](https://github.com/adamrt27/ANS_py/blob/main/tANS_py/Coder.py).
+The main workflow of this implementation can be found in [tANS.py](https://github.com/adamrt27/ANS_py/blob/main/tANS_py/tANS.py). This file contains functions which encode and decode messages using the `Coder` class. The benefit of using this file is that it allows for a more streamlined workflow, removing the need for the user to interact with the `Coder` class directly and define symbols and their frequencies.
 
 Example Usage:
 
 ```python
-# importing the Coder class as well as the Utils module, which helps with generating random data for testing
-import tANS_py.Coder, tANS_py.Utils
-import numpy as np
+# Importing the tANS module and testing it with a simple message
+from tANS_py import tANS
 
-# Set up the alphabet
-s = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
-nbits = 5 # 5 bits per symbol as there are 26 symbols in the alphabet
+# takes a string or list of symbols as input
+msg = "Hello World! This is a test message to see how well the tANS algorithm works. It should be able to compress this message quite well, as it has a lot of repeated characters. Let's see how well it does!"
+msg_list = list(msg)
 
-# Run this multiple times to see how it performs on average
-comp_ratios = []
-for i in range(50):
-    # Set up random frequencies
-    # This specifically generates a list of len(s) numbers randomly chosen between 1 and 100
-    freq = tANS_py.Utils.generate_random_list2(len(s), 100)
+# Using the tANS module to encode and decode the message as a string
 
-    # Create the Coder object
-    c = tANS_py.Coder.Coder(sum(freq), s, freq, fast = False) # specifies fast = False to use slower, but more effecient spread function
+# L determines the table size, the larger the table, the more efficient the encoding (default is 1024)
+# fast determines whether to use the fast or slow version of the spread, slow is more efficient but slower (default is False)
+bits, c = tANS.encode(msg, L = 128, fast= False)  
 
-    # Create a message
-    # Specifically generates a random string using symbols from s with frequencies from freq
-    msg = tANS_py.Utils.generate_random_string(s, freq)
+# Note: the output of encode, c, must be passed to decode, as it contains the data necessary to decode the message   
+res = tANS.decode(bits, c)              
 
-    # Encode and decode the message and get the number of bits of the encoded message
-    # Note: you must pass in message as a list of symbols
-    out, bits = c.encode_decode(list(msg))
+# returns a list of characters, so we need to join them into a string
+res = "".join(res) 
 
-    # Check if the decoding worked
-    if "".join(out) != msg:
-        # If the decoding failed, print a message
-        print("Coding failed")
-    else:
-        # If the decoding worked, save the compression ratio
-        comp_ratios.append(len(msg) * nbits / bits)
-    
-print("Comp Ratio:", np.mean(comp_ratios))
+print(msg[:11])
+print("String Works:",res == msg)
+
+# Using the tANS module to encode and decode the message as a list
+bits, c = tANS.encode(msg_list)
+res = tANS.decode(bits, c)
+
+print(msg_list[:11])
+print("List Works:",res == msg_list)
 ```
-Output:
+
 ```output
-Comp Ratio: 1.359817660857606
+Hello World
+String Works: True
+['H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd']
+List Works: True
 ```
 
-## Submodules of `Coder`
+## Submodules
 
-### `DecodeTable`
+tANS_py contains several submodules that can be used to interact with the tANS algorithm. These submodules are:
 
-This class is used to decode an encoded message. It is initialized with the table length (`L`), the list of symbols (`s_list`) and the list of frequencies (`L_s`). See implemention in [Decoder.py](https://github.com/adamrt27/ANS_py/blob/main/tANS_py/Decoder.py)
+* [Coder](https://github.com/adamrt27/ANS_py/blob/main/tANS_py/Coder.py) - The main class that is used to encode and decode messages
+* [Decoder](https://github.com/adamrt27/ANS_py/blob/main/tANS_py/Decoder.py) - Contains the functions necessary to decode a message
+* [Encoder](https://github.com/adamrt27/ANS_py/blob/main/tANS_py/Encoder.py) - Contains the functions necessary to encode a message
+* [SpreadFunction](https://github.com/adamrt27/ANS_py/blob/main/tANS_py/SpreadFunction.py) - Contains the functions necessary to build the encoder and decoder tables
+* [Utils](https://github.com/adamrt27/ANS_py/blob/main/tANS_py/Utils.py) - Contains utility functions that are mainly used to generate frequency counts given a probability distribution
 
-### `Encoder`
-
-This class is used to encode a message. It is initialized with the table length (`L`), the list of symbols (`s_list`) and the list of frequencies (`L_s`). See implemention in [Encoder.py](https://github.com/adamrt27/ANS_py/blob/main/tANS_py/Encoder.py)
-
-Example Usage of Submodules:
-
-```python
-# Testing code 
-import tANS_py.Decoder
-import tANS_py.Encoder
-
-# Define the alphabet and the frequency of each symbol
-s = ["A","B","C"]
-freq = [6, 2, 24] # note that the sum of freq must be a power of 2 (in this case 32)
-
-# Create the encoder and decoder
-t = tANS_py.Decoder.DecodeTable(sum(freq), s, freq, fast = False)
-g = tANS_py.Encoder.Encoder(sum(freq), s,freq,t.symbol_spread)
-
-# Create message
-msg = "CAACACCCCCCCCBCCCACCCACCCACCCBCC"
-msg_temp = list(msg)
-
-# Encode message
-bit = g.encode(msg_temp)
-
-# Decode message
-out = t.decode(bit)
-out.reverse() # reverse the list to get the original message, as the decoding function returns the message in reverse order
-print("Coding worked:", "".join(out) == msg)
-```
-
-Output:
-```output
-Coding worked: True
-```
-
-## `SpreadFunction.py`
-
-This module contains the spread function defined in [the original paper](https://arxiv.org/abs/1311.2540). It is automatically called by `Coder` and its submodules. See implemention in [SpreadFunction.py](https://github.com/adamrt27/ANS_py/blob/main/tANS_py/SpreadFunction.py).
-
-## `Utils.py`
-
-Contains utility functions for generating random data or rescaling frequencies for the coder. See implemention in [Utils.py](https://github.com/adamrt27/ANS_py/blob/main/tANS_py/Utils.py).
-
-Functions:
-```python
-from tANS_py import Utils
-# generates a list of length numbers that sum to a power of 2, with each number being randomly chosen between 1 and n
-Utils.generate_random_list_pow2(length, n) 
-
-# generates a list of length numbers that sum to a target sum, with each number being randomly chosen between 1 and n
-Utils.generate_random_list_target(length, n, target_sum)
-
-# rescales a list of numbers to sum to a power of 2 that is less than or equal to max sum
-Utils.rescale_list_to_power_of_2(input_list, max_sum)
-
-# generates a random string of length n using symbols from s with frequencies from freq
-Utils.generate_random_string(s, freq)
-```
+You can find examples of how to use these submodules in [example.ipynb](https://github.com/adamrt27/ANS_py/blob/main/example.ipynb).
 
 # About
 
