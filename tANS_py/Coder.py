@@ -97,5 +97,4 @@ class Coder:
             list: returns the decoded symbols
         """
         data_t = list(data)
-        print(data_t)
         return "".join(self.encode_decode(data_t)[0])

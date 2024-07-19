@@ -1,5 +1,6 @@
 # Start by just testing Coder
 import tANS_py.Coder, tANS_py.Utils
+import pytest
 
 def test_checkCoder():
 
@@ -27,3 +28,14 @@ def test_checkCoder():
 
         # Check if the decoding worked
         assert "".join(out) == msg, "Coding failed"
+        
+def test_checkCoderL_err():
+    
+    s = ["1","2","3","4","5"]
+    freq = [1,2,3,4,5] # sum is 15 which is not a power of 2
+    
+    with pytest.raises(ValueError):
+        c = tANS_py.Coder.Coder(sum(freq), s, freq, fast = False)
+        
+        msg = tANS_py.Utils.generate_random_string(s, freq)
+        out, bits = c.encode_decode(list(msg))
