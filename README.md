@@ -25,7 +25,7 @@ See [example.ipynb](https://github.com/adamrt27/ANS_py/blob/main/example.ipynb) 
 
 The main workflow of this implementation can be found in [tANS.py](https://github.com/adamrt27/ANS_py/blob/main/tANS_py/tANS.py). This file contains functions which encode and decode messages using the `Coder` class. The benefit of using this file is that it allows for a more streamlined workflow, removing the need for the user to interact with the `Coder` class directly and define symbols and their frequencies.
 
-Example Usage:
+### Encoding and Decoding
 
 ```python
 # Importing the tANS module and testing it with a simple message
@@ -57,12 +57,48 @@ res = tANS.decode(bits, c)
 print(msg_list[:11])
 print("List Works:",res == msg_list)
 ```
-
+Output:
 ```output
 Hello World
 String Works: True
 ['H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd']
 List Works: True
+```
+
+### `encode_decode_test` for Testing
+If you wish to test how well ANS works on a particular dataset, you can use the `encode_decode` function in `tANS.py`. This function takes a message, encodes and decodes it, and returns the **compression ratio**, along with the encoded message and decoded result. **Compression ratio** = (size of original message) / (size of compressed message), thus a higher compression ratio is better.
+
+This can be useful if you are comparing ANS to other compression algorithms, or if you are trying to determine the best table size for your data.
+
+```python
+# Can also test the encode_decode function to test the compression ratio, good for evaluating the algorithm
+msg = "Hello World! This is a test message to see how well the tANS algorithm works. It should be able to compress this message quite well, as it has a lot of repeated characters. Let's see how well it does!"
+msg2 = "Hello World! This message will compress worse"
+
+res = tANS.encode_decode_test(msg, L = 1024, fast = False)
+res2 = tANS.encode_decode_test(msg2, L = 1024, fast = False)
+
+print("Message 1")
+print("\tBitstream","".join([str(i) for i in res[0]]))
+print("\tWorking:",res[1] == msg)
+print("\tComp Ratio:",res[2])
+
+print("Message 2")
+print("\tBitstream","".join([str(i) for i in res2[0]]))
+print("\tWorking:",res2[1] == msg2)
+print("\tComp Ratio:",res2[2])
+```
+Output:
+```output
+Message 1
+	Bitstream 1100011110111001001101110000000001010101101000010111111010110100100110001101101001101010110001001110110011000000001111000001101111110101110000100001110000001100100101101110111100000011110100101100010011010101011110110001100101110010110111100010110001110110110101010101101001000100001001111001000101110101000101000000100110010101110111010101111110101000000100110010101101111000010010100001111000101001111111110100010010000100001100001100010010111011100010111010000010100011011110110111101101011100001101001000110011010100001000000011011011011111101000111111110101101101101100101101111000110001100000101011101100101100110001011001111001100011101010101101001101111001000010011110100110010100011011100011011011110110110001100100111001110000111010110110001011010011011010111010101011101101001100101011011101010001000101111000100100111000001100011
+	Working: True
+	Comp Ratio: 1.426872770511296
+Message 2
+	Bitstream 10100111001110110111110111000101011100000111110001010110001001001101100100110010010100010001011011001010011001101000111100011101001000110010110000000000010011011000101000111000100001110000010100
+	Working: True
+	Comp Ratio: 1.1597938144329898
+
 ```
 
 ## Submodules
