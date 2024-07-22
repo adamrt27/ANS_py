@@ -67,7 +67,7 @@ msg_list = list(msg)
 
 # L determines the table size, the larger the table, the more efficient the encoding (default is 1024)
 # fast determines whether to use the fast or slow version of the spread, slow is more efficient but slower (default is False)
-bits, c = tANS.encode(msg, L = 128, fast= False)  
+bits, c = tANS.encode(msg, L = 128, fast= False, dtype = "str")  
 
 # Note: the output of encode, c, must be passed to decode, as it contains the data necessary to decode the message   
 res = tANS.decode(bits, c)              
@@ -79,7 +79,7 @@ print(msg[:11])
 print("String Works:",res == msg)
 
 # Using the tANS module to encode and decode the message as a list
-bits, c = tANS.encode(msg_list)
+bits, c = tANS.encode(msg_list, dtype = "list")
 res = tANS.decode(bits, c)
 
 print(msg_list[:11])
@@ -100,13 +100,15 @@ If you wish to test how well ANS works on a particular dataset, you can use the 
 
 This can be useful if you are comparing ANS to other compression algorithms, or if you are trying to determine the best table size for your data.
 
+This also works with lists and *numpy* arrays.
+
 ```python
 # Can also test the encode_decode function to test the compression ratio, good for evaluating the algorithm
 msg = "Hello World! This is a test message to see how well the tANS algorithm works. It should be able to compress this message quite well, as it has a lot of repeated characters. Let's see how well it does!"
 msg2 = "Hello World! This message will compress worse"
 
-res = tANS.encode_decode_test(msg, L = 1024, fast = False)
-res2 = tANS.encode_decode_test(msg2, L = 1024, fast = False)
+res = tANS.encode_decode_test(msg, L = 1024, fast = False, dtype = "str")
+res2 = tANS.encode_decode_test(msg2, L = 1024, fast = False, dtype = "str")
 
 print("Message 1")
 print("\tBitstream","".join([str(i) for i in res[0]]))
