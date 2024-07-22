@@ -27,6 +27,34 @@ The main workflow of this implementation can be found in [tANS.py](https://githu
 
 ### Encoding and Decoding
 
+**Using Numpy:**
+
+```python
+from tANS_py import tANS
+import numpy as np
+
+# Define a random numpy array
+msg = np.random.randint(0, 256, 1020, dtype=np.uint8)
+
+# Use the tANS module to encode and decode the message
+
+# L determines the table size, the larger the table, the more efficient the encoding (default is 1024)
+# fast determines whether to use the fast or slow version of the spread, slow is more efficient but slower (default is False)
+# dtype determines the type of the output, 'np' for numpy array, 'list' for python list, 'str' for string (default is 'np')
+bits, c = tANS.encode(msg, L = 1024, fast = False, dtype = 'np')
+
+# Note: the output of encode, c, must be passed to decode, as it contains the data necessary to decode the message   
+res = tANS.decode(bits, c, dtype = "np")
+
+print("The two messages are the same: ", np.array_equal(msg, res))
+print("Compression ratio: ", len(bits)/(len(msg)*8)) # (num encoded bits / num original bits)
+```
+Output:
+```output
+The two messages are the same:  True
+Compression ratio:  1.2509803921568627
+```
+**Using Python Lists and Strings:**
 ```python
 # Importing the tANS module and testing it with a simple message
 from tANS_py import tANS
