@@ -43,7 +43,7 @@ def encode_decode_test(data, L = 1024, fast=False):
     out = c.decode(bitstream)
     
     # calculate the compression ratio
-    comp_ratio = (len(data) * Coder.Coder.calculate_bits(len(s))) / len(bitstream) 
+    comp_ratio = (Coder.Coder.calculate_bits(data)) / (len(bitstream) /8)
     
     # return the bitstream and the decoded data and the compression ratio
     return bitstream, "".join(out), comp_ratio

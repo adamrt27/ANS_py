@@ -52,15 +52,27 @@ class Coder:
         return res
     
     @staticmethod
-    def calculate_bits(number):
-        if number == 0:
-            return 1  # Special case for zero
-        num_bits = 0
-        while number:
-            number >>= 1  # Right shift by 1 bit
-            num_bits += 1
-        return num_bits
-    
+    def calculate_bits(my_string):
+        """Calculates the number of bits needed to represent the string
+
+        Args:
+            string (str/list): the number to represent
+
+        Returns:
+            int: the number of bytes needed
+        """
+        # check if the input is a list, if so convert it to a string
+        if not isinstance(my_string, str):
+            my_string = "".join(str(i) for i in my_string)
+        
+        # Encode the string to bytes
+        encoded_string = my_string.encode('utf-8')
+
+        # Get the size of the encoded string in bytes
+        string_data_size = len(encoded_string)
+
+        return string_data_size   
+        
     def encode_decode(self, data, verbose = False):
         """Encodes and decodes the data, and returns the decoded data
 
@@ -79,7 +91,7 @@ class Coder:
             print("Error in encoding and decoding")
             
         # compute how many bits saved
-        orig_bits = len(data) * Coder.calculate_bits(len(self.s_list))
+        orig_bits = Coder.calculate_bits(str(data))
         comp_bits = len(bitstream)
         
         if verbose:
