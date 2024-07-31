@@ -10,16 +10,16 @@ typedef struct encodeTable{
     int L;
     uint8_t *s_list;
     uint8_t *L_s;
-    uint8_t *table;
+    int *table;
     uint8_t n_sym;              // number of symbols
 
     uint8_t *k;
-    uint8_t *nb;
+    int *nb;
     int *start;
 } encodeTable;
 
 typedef struct encoder{
-    uint8_t state;
+    int state;
     uint8_t *bitstream;
     uint8_t n_bits_used;        // number of bits used in current block
     long l_bitstream;
@@ -94,10 +94,10 @@ encodeTable *initEncodeTable(int L, uint8_t *s_list, uint8_t *L_s, uint8_t n_sym
     table->n_sym = n_sym;
 
     table->k = (uint8_t *)malloc(sizeof(uint8_t) * table->n_sym);
-    table->nb = (uint8_t *)malloc(sizeof(uint8_t) * table->n_sym);
+    table->nb = (int *)malloc(sizeof(int) * table->n_sym);
     table->start = (int *)malloc(sizeof(int) * table->n_sym);
 
-    table->table = (uint8_t *)malloc(L * sizeof(uint8_t)); 
+    table->table = (int *)malloc(L * sizeof(int)); 
     uint8_t *sym_spread = fast_spread(table, 0, (int)((5.0/8.0) * table->L + 3));
     createEncodeTable(table, sym_spread);
     return table;
@@ -126,6 +126,33 @@ int useBits(encoder *e, int nb) {
     return bits;
 }
 
+void append_to_bitstream(encoder *e, uint8_t bits, int nb) {
+    // check if current index in bitstream is going to overflow with new bits added
+    if ((8 - e->n_bits_used) < nb) { // if bits are going to overflow
+        // append as many as I can to current block
+        e->bitstream[e->l_bitstream] += (bits && (1 << (8 - e->n_bits_used))) << e->n_bits_used;
+        
+        // increment block
+        e->l_bitstream ++;
+        // append remaining to new block 
+        e->bitstream[e->l_bitstream] += bits >> (nb - (8 - e->n_bits_used));
+
+        // update n_bits_used
+        e->n_bits_used = nb - (8 - e->n_bits_used);
+    } else {
+        // append the bits to the current block
+        e->bitstream[e->l_bitstream] += bits << e->n_bits_used;
+        // update the number of bits used
+        e->n_bits_used += nb;
+        // check if block is full
+        if (e->n_bits_used == 8) {
+            // if so, increment block and reset n_bits_used
+            e->l_bitstream ++;
+            e->n_bits_used = 0;
+        }
+    }
+}
+
 void encode_step(encoder *e, encodeTable *table) {
     int r = log2(table->L * 2);
 
@@ -137,36 +164,23 @@ void encode_step(encoder *e, encodeTable *table) {
     int nb = (e->state + (table->nb[s])) >> r;
 
     // get bits to append to bitstream
-    uint8_t temp = useBits(e, nb);
+    uint8_t bits = useBits(e, nb);
 
-    // TODO: append to bitstream
-    // check if current index in bitstream is going to overflow with new bits added
-    if ((8 - e->n_bits_used) < nb) { // if bits are going to overflow
-        // append as many as I can to current block
-        e->bitstream[e->l_bitstream] += (temp && (1 << 8 - e->n_bits_used)) << e->n_bits_used;
-        
-        // increment block
-        e->l_bitstream ++;
-        // append remaining to new block 
-        e->bitstream[e->l_bitstream] += temp >> (nb - (8 - e->n_bits_used));
-
-        // update n_bits_used
-        e->n_bits_used = nb - (8 - e->n_bits_used);
-    } else {
-        // append the bits to the current block
-        e->bitstream[e->l_bitstream] += temp << e->n_bits_used;
-        // update the number of bits used
-        e->n_bits_used += nb;
-        // check if block is full
-        if (e->n_bits_used == 8) {
-            // if so, increment block and reset n_bits_used
-            e->l_bitstream ++;
-            e->n_bits_used = 0;
-        }
-    }
+    // append bits to bitstream
+    append_to_bitstream(e, bits, nb);
 
     // update state
-    e->state = table->table[table->start[s] + e->state];
+    int index = table->start[s] + e->state;
+    printf("index: %d, %d, %d \n",index, table->start[s], e->state);
+    if (index < 0){
+        index = 256 + index;
+    } else if (index >= 256){
+        index = index - 256;
+    }
+    e->state = table->table[index];
+
+
+    printf("State: %d, Symbol: %d, Bits: %d, nb: %d\n", e->state - 256, s, bits, nb); 
 }
 
 encoder *encode(uint8_t *msg, int l_msg, encodeTable *table){
@@ -196,13 +210,19 @@ encoder *encode(uint8_t *msg, int l_msg, encodeTable *table){
 
     // go through msg and encode
     for(int i = 0; i < e->l_msg; i ++){
-        s = table->s_list[e->msg[i]];
+        s = e->msg[i];
         encode_step(e, table);
     }
 
-    // encode final state
-    
+    // encode final state  
+    append_to_bitstream(e, e->state, log2(table->L));
 
+    // encode original state
+    append_to_bitstream(e, state_orig, log2(table->L));
+
+    e->l_bitstream ++;
+
+    return e;
 }
 
 int main(){
@@ -224,4 +244,47 @@ int main(){
     printf("The sum of L_s is %d\n", sum);
 
     encodeTable *res = initEncodeTable(256, s_list, L_s, 8);
+
+    // print res->nb
+    printf("nb: [");
+    for(int i = 0; i < 8; i ++){
+        printf("%d, ", res->nb[i]);
+    }
+    // print start
+    printf("\b\b]\nstart: [");
+    for(int i = 0; i < 8; i ++){
+        printf("%d, ", res->start[i]);
+    }
+
+    // print k
+    printf("\b\b]\nk: [");
+    for(int i = 0; i < 8; i ++){
+        printf("%d, ", res->k[i]);
+    }
+
+    // print L_s
+    printf("\b\b]\nL_s: [");
+    for(int i = 0; i < 8; i ++){
+        printf("%d, ", res->L_s[i]);
+    }
+    printf("\b\b]\n");
+
+    // print spread
+    uint8_t *sym_spread = fast_spread(res, 0, (int)((5.0/8.0) * res->L + 3));
+    printf("Sym Spread: [");
+    for(int i = 0; i < 256; i ++){
+        printf("%d, ", sym_spread[i]);
+    }
+    printf("\b\b]\n");
+
+    displayEncodeTable(res);
+
+    uint8_t msg[5] = {0,1,2,3,4};
+
+    encoder *e = encode(msg, 5, res);
+
+    printf("Bitstream: [");
+    for(int i = 0; i < e->l_bitstream; i ++){
+        printf("%d, ", e->bitstream[i]);
+    }
 }
