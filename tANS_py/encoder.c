@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <math.h>
 
+
 typedef struct encodeTable{
     int L;
     uint8_t *s_list;
@@ -129,19 +130,22 @@ int useBits(encoder *e, int nb) {
 void append_to_bitstream(encoder *e, uint8_t bits, int nb) {
     // check if current index in bitstream is going to overflow with new bits added
     if ((8 - e->n_bits_used) < nb) { // if bits are going to overflow
-        // append as many as I can to current block
-        e->bitstream[e->l_bitstream] += (bits && (1 << (8 - e->n_bits_used))) << e->n_bits_used;
+        // append as many as I can to current block, first moving old bits to the left
+        e->bitstream[e->l_bitstream] = e->bitstream[e->l_bitstream] << (8 - e->n_bits_used);
+        e->bitstream[e->l_bitstream] += bits >> (nb - (8 - e->n_bits_used));
         
         // increment block
         e->l_bitstream ++;
-        // append remaining to new block 
-        e->bitstream[e->l_bitstream] += bits >> (nb - (8 - e->n_bits_used));
+        // append the remaining bits to the new block
+        e->bitstream[e->l_bitstream] = bits & ((1 << (nb - (8 - e->n_bits_used))) - 1);
 
         // update n_bits_used
         e->n_bits_used = nb - (8 - e->n_bits_used);
     } else {
-        // append the bits to the current block
-        e->bitstream[e->l_bitstream] += bits << e->n_bits_used;
+        // append the bits to the current block, first moving old bits to the left
+        e->bitstream[e->l_bitstream] = e->bitstream[e->l_bitstream] << nb;
+        // add new bits to the end
+        e->bitstream[e->l_bitstream] += bits;
         // update the number of bits used
         e->n_bits_used += nb;
         // check if block is full
@@ -181,6 +185,11 @@ void encode_step(encoder *e, encodeTable *table) {
 
 
     printf("State: %d, Symbol: %d, Bits: %d, nb: %d\n", e->state - 256, s, bits, nb); 
+    printf("Bitstream: [");
+    for(int i = 0; i <= e->l_bitstream; i ++){
+        printf("%d, ", e->bitstream[i]);
+    }
+    printf("\b\b]\n");
 }
 
 encoder *encode(uint8_t *msg, int l_msg, encodeTable *table){
@@ -200,6 +209,8 @@ encoder *encode(uint8_t *msg, int l_msg, encodeTable *table){
     // save the original state
     int state_orig = e->state;
 
+    printf("State Orig: %d\n", e->state - 256);
+
     // reset all values modified by encode_step
     e->bitstream = (uint8_t *)malloc(sizeof(uint8_t));
     e->l_bitstream = 0;
@@ -214,13 +225,16 @@ encoder *encode(uint8_t *msg, int l_msg, encodeTable *table){
         encode_step(e, table);
     }
 
+    printf("Final State: %d\n", e->state - 256);
     // encode final state  
-    append_to_bitstream(e, e->state, log2(table->L));
+    append_to_bitstream(e, e->state - 256, log2(table->L));
 
     // encode original state
-    append_to_bitstream(e, state_orig, log2(table->L));
+    append_to_bitstream(e, state_orig - 256, log2(table->L));
 
     e->l_bitstream ++;
+
+    printf("n_bits_used: %d\n", e->n_bits_used);
 
     return e;
 }
