@@ -1,33 +1,35 @@
 // Implementation of ANS decoding functions, where 
 // L = 256, and symbols are 8-bit unsigned integers.
 
-#include <stdio.h>
-#include <stdlib.h>
+#include "encoder.h"
 #include <stdint.h>
 #include <math.h>
+#include <time.h>
 
+// Function to set a bit in the bitstream
+void set_bit(uint8_t *bitstream, size_t bit_pos) {
+    size_t byte_pos = bit_pos / 8;
+    size_t bit_offset = bit_pos % 8;
+    SET_BIT(bitstream[byte_pos], bit_offset);
+}
 
-typedef struct encodeTable{
-    int L;
-    uint8_t *s_list;
-    uint8_t *L_s;
-    int *table;
-    uint8_t n_sym;              // number of symbols
+// Function to get a bit from the bitstream
+int get_bit(uint8_t *bitstream, size_t bit_pos) {
+    size_t byte_pos = bit_pos / 8;
+    size_t bit_offset = bit_pos % 8;
+    return GET_BIT(bitstream[byte_pos], bit_offset);
+}
 
-    uint8_t *k;
-    int *nb;
-    int *start;
-} encodeTable;
-
-typedef struct encoder{
-    int state;
-    uint8_t *bitstream;
-    uint8_t n_bits_used;        // number of bits used in current block
-    long l_bitstream;
-    uint8_t *msg;
-    int l_msg;
-    int ind_msg;                // current index in message you are encoding
-} encoder;
+// Function to print the bitstream
+void print_bitstream(uint8_t *bitstream, size_t num_bits) {
+    for (size_t i = 0; i < num_bits; ++i) {
+        printf("%d", get_bit(bitstream, i));
+        if ((i + 1) % 8 == 0) {
+            printf(" "); // Print a space every byte for readability
+        }
+    }
+    printf("\n");
+}
 
 uint8_t *fast_spread(encodeTable *table, int X, float step) {
     // initialize the symbol spread array
@@ -127,33 +129,24 @@ int useBits(encoder *e, int nb) {
     return bits;
 }
 
-void append_to_bitstream(encoder *e, uint8_t bits, int nb) {
-    // check if current index in bitstream is going to overflow with new bits added
-    if ((8 - e->n_bits_used) < nb) { // if bits are going to overflow
-        // append as many as I can to current block, first moving old bits to the left
-        e->bitstream[e->l_bitstream] = e->bitstream[e->l_bitstream] << (8 - e->n_bits_used);
-        e->bitstream[e->l_bitstream] += bits >> (nb - (8 - e->n_bits_used));
-        
-        // increment block
-        e->l_bitstream ++;
-        // append the remaining bits to the new block
-        e->bitstream[e->l_bitstream] = bits & ((1 << (nb - (8 - e->n_bits_used))) - 1);
 
-        // update n_bits_used
-        e->n_bits_used = nb - (8 - e->n_bits_used);
-    } else {
-        // append the bits to the current block, first moving old bits to the left
-        e->bitstream[e->l_bitstream] = e->bitstream[e->l_bitstream] << nb;
-        // add new bits to the end
-        e->bitstream[e->l_bitstream] += bits;
-        // update the number of bits used
-        e->n_bits_used += nb;
-        // check if block is full
-        if (e->n_bits_used == 8) {
-            // if so, increment block and reset n_bits_used
-            e->l_bitstream ++;
-            e->n_bits_used = 0;
+void append_to_bitstream(encoder *e, uint8_t bits, int nb) {
+    // append bits to bitstream
+    for(int i = nb-1; i >= 0; i --){
+        if (e->l_bitstream >= e->bitstream_capacity * 8) {
+            e->bitstream_capacity *= 2;
+            e->bitstream = (uint8_t *)realloc(e->bitstream, e->bitstream_capacity);
+            if (e->bitstream == NULL) {
+                perror("Failed to reallocate memory");
+                exit(EXIT_FAILURE);
+            }
         }
+        if (bits & (1 << i)){
+            set_bit(e->bitstream, e->l_bitstream);
+        } else {
+            CLEAR_BIT(e->bitstream[e->l_bitstream / 8], e->l_bitstream % 8);
+        }
+        e->l_bitstream ++;
     }
 }
 
@@ -175,33 +168,24 @@ void encode_step(encoder *e, encodeTable *table) {
 
     // update state
     int index = table->start[s] + e->state;
-    printf("index: %d, %d, %d \n",index, table->start[s], e->state);
-    if (index < 0){
+    if (index < 0){ // if index is negative
         index = 256 + index;
-    } else if (index >= 256){
+    } else if (index >= 256){ // if index is greater than 255
         index = index - 256;
     }
     e->state = table->table[index];
-
-
-    printf("State: %d, Symbol: %d, Bits: %d, nb: %d\n", e->state - 256, s, bits, nb); 
-    printf("Bitstream: [");
-    for(int i = 0; i <= e->l_bitstream; i ++){
-        printf("%d, ", e->bitstream[i]);
-    }
-    printf("\b\b]\n");
 }
 
 encoder *encode(uint8_t *msg, int l_msg, encodeTable *table){
     // initialize an encoder 
     encoder *e = (encoder *)malloc(sizeof(encoder));
     e->bitstream = (uint8_t *)malloc(sizeof(uint8_t));
+    e->bitstream_capacity = 1;
     e->l_bitstream = 0;
     e->ind_msg = 0;
     e->l_msg = l_msg;
     e->msg = msg;
     e->state = 0;
-    e->n_bits_used = 0;
 
     // initialize the state
     encode_step(e, table);
@@ -209,13 +193,11 @@ encoder *encode(uint8_t *msg, int l_msg, encodeTable *table){
     // save the original state
     int state_orig = e->state;
 
-    printf("State Orig: %d\n", e->state - 256);
-
     // reset all values modified by encode_step
     e->bitstream = (uint8_t *)malloc(sizeof(uint8_t));
+    e->bitstream_capacity = 1; // Initial capacity
     e->l_bitstream = 0;
     e->ind_msg = 0;
-    e->n_bits_used = 0;
 
     int s;
 
@@ -225,16 +207,11 @@ encoder *encode(uint8_t *msg, int l_msg, encodeTable *table){
         encode_step(e, table);
     }
 
-    printf("Final State: %d\n", e->state - 256);
     // encode final state  
     append_to_bitstream(e, e->state - 256, log2(table->L));
 
     // encode original state
     append_to_bitstream(e, state_orig - 256, log2(table->L));
-
-    e->l_bitstream ++;
-
-    printf("n_bits_used: %d\n", e->n_bits_used);
 
     return e;
 }
@@ -259,46 +236,51 @@ int main(){
 
     encodeTable *res = initEncodeTable(256, s_list, L_s, 8);
 
-    // print res->nb
-    printf("nb: [");
-    for(int i = 0; i < 8; i ++){
-        printf("%d, ", res->nb[i]);
-    }
-    // print start
-    printf("\b\b]\nstart: [");
-    for(int i = 0; i < 8; i ++){
-        printf("%d, ", res->start[i]);
-    }
+    // // print res->nb
+    // printf("nb: [");
+    // for(int i = 0; i < 8; i ++){
+    //     printf("%d, ", res->nb[i]);
+    // }
+    // // print start
+    // printf("\b\b]\nstart: [");
+    // for(int i = 0; i < 8; i ++){
+    //     printf("%d, ", res->start[i]);
+    // }
 
-    // print k
-    printf("\b\b]\nk: [");
-    for(int i = 0; i < 8; i ++){
-        printf("%d, ", res->k[i]);
-    }
+    // // print k
+    // printf("\b\b]\nk: [");
+    // for(int i = 0; i < 8; i ++){
+    //     printf("%d, ", res->k[i]);
+    // }
 
-    // print L_s
-    printf("\b\b]\nL_s: [");
-    for(int i = 0; i < 8; i ++){
-        printf("%d, ", res->L_s[i]);
-    }
-    printf("\b\b]\n");
+    // // print L_s
+    // printf("\b\b]\nL_s: [");
+    // for(int i = 0; i < 8; i ++){
+    //     printf("%d, ", res->L_s[i]);
+    // }
+    // printf("\b\b]\n");
 
-    // print spread
-    uint8_t *sym_spread = fast_spread(res, 0, (int)((5.0/8.0) * res->L + 3));
-    printf("Sym Spread: [");
-    for(int i = 0; i < 256; i ++){
-        printf("%d, ", sym_spread[i]);
-    }
-    printf("\b\b]\n");
+    // // print spread
+    // uint8_t *sym_spread = fast_spread(res, 0, (int)((5.0/8.0) * res->L + 3));
 
-    displayEncodeTable(res);
+
+    //displayEncodeTable(res);
 
     uint8_t msg[5] = {0,1,2,3,4};
 
-    encoder *e = encode(msg, 5, res);
+    // get time it takes to encode in pico seconds, averaged over 10,000 runs
+    encoder *e;
 
-    printf("Bitstream: [");
-    for(int i = 0; i < e->l_bitstream; i ++){
-        printf("%d, ", e->bitstream[i]);
+    clock_t start_time = clock();
+    for(int i = 0; i < 10000; i ++){
+        e = encode(msg, 5, res);
     }
+    clock_t end_time = clock();
+
+    // Calculate the elapsed time
+    double elapsed_time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
+
+    printf("Time per run: %.6f pico seconds\n", elapsed_time * 1000000 / 10000);
+
+    print_bitstream(e->bitstream, e->l_bitstream);
 }

@@ -1,37 +1,11 @@
 // Implementation of ANS decoding functions, where 
 // L = 256, and symbols are 8-bit unsigned integers.
 
-#include <stdio.h>
+#include "decoder.h"
 #include <stdlib.h>
 #include <stdint.h>
 #include <math.h>
 
-// defines on column of the decodeTable
-typedef struct decodeTableColumn {
-    uint8_t x;
-    uint8_t sym;
-    uint8_t nb;
-    uint8_t newX;
-} decodeTableColumn;
-
-// defines the entire decodeTable
-typedef struct decodeTable {
-    decodeTableColumn *table;
-    int L;
-    uint8_t *s_list;
-    uint8_t *L_s;
-    uint8_t n_sym;              // number of symbols
-} decodeTable;
-
-// used to hold values for decoding process
-typedef struct decoder {
-    uint8_t state;
-    uint8_t *bitstream;
-    long l_bitstream;           // the length of the bitstream
-    uint16_t cur_bitstream;     // the current 2 bytes from bitstream
-    uint8_t *msg;
-    int l_msg;                  // length of message
-} decoder;
 
 uint8_t *fast_spread(decodeTable *table, int X, float step) {
     // initialize the symbol spread array
@@ -211,49 +185,41 @@ decoder *decode(uint8_t *bitstream, long l_bitstream, decodeTable *table){
 
 #include <time.h>
 
-int main(){
+int main() {
     uint8_t *s_list = (uint8_t *)malloc(sizeof(uint8_t) * 256);
-    for(int i = 0; i < 8; i ++){
+    for (int i = 0; i < 8; i++) {
         s_list[i] = i;
     }
-    uint8_t L_s[8] = {50,40,60,50,30,24,1,1};
-
-    int length = sizeof(L_s) / sizeof(L_s[0]); // Calculate the number of elements in the array
-    int sum = 0;
-
-    // Loop through the array and calculate the sum
-    for (int i = 0; i < length; i++) {
-        sum += L_s[i];
-    }
-
-    printf("The sum of L_s is %d\n", sum);
+    uint8_t L_s[8] = {50, 40, 60, 50, 30, 24, 1, 1};
 
     decodeTable *res = initDecodeTable(256, s_list, L_s, 8);
 
-    displayDecodeTable(res);
-
-    clock_t start_time = clock();
-
     uint8_t bs[3] = {48, 245, 1};
 
-    uint8_t *b = (uint8_t *)malloc(sizeof(uint8_t) * 3);
-    for (int i = 0; i < 3; i ++){
-        b[i] = bs[i];
+    long num_iter = 1000000;
+
+    // Warm-up iterations
+    for (int i = 0; i < 1000; i++) {
+        decoder *d = decode(bs, 3, res);
+        free(d->msg); // Free allocated memory to avoid memory leaks
+        free(d);
     }
 
-    decoder *d = decode(b, 3, res);
+    struct timespec start_time, end_time;
+    clock_gettime(CLOCK_MONOTONIC, &start_time);
 
-    clock_t end_time = clock();
-
-    // Calculate the elapsed time
-    double elapsed_time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
-
-    printf("The message is: ");
-    for(int i = 0; i < d->l_msg; i ++){
-        printf("%d", d->msg[i]);
+    decoder *d = NULL;
+    for (int i = 0; i < num_iter; i++) {
+        d = decode(bs, 3, res);
+        free(d->msg); // Free allocated memory to avoid memory leaks
+        free(d);
     }
 
-    printf("\nElapsed time: %.6f pico seconds\n", elapsed_time * 1000000);
+    clock_gettime(CLOCK_MONOTONIC, &end_time);
+
+    double elapsed_time = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec) / 1e9;
+
+    printf("Elapsed time per iteration: %.6f microseconds\n", (elapsed_time * 1e6) / num_iter);
 
     // Free the allocated memory
     free(s_list);
