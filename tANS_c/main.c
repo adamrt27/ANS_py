@@ -21,6 +21,8 @@ char *int_to_bool(int n){
     return "True";
 }
 
+#include <time.h>
+
 int main(){
     // testing the coder
     uint8_t *s_list = (uint8_t *)malloc(sizeof(uint8_t) * 256);
@@ -36,12 +38,27 @@ int main(){
 
     uint8_t l_msg = 34;
 
-    encodeCoder(c, msg, l_msg);
+    // track time
+    int n_iter = 10000;
 
-    printf("Encoded message: ");
-    print_bitstream(c->e->bitstream, c->e->l_bitstream);
+    struct timespec start_time, end_time;
+    clock_gettime(CLOCK_MONOTONIC, &start_time);
 
-    decodeCoder(c);
+    // start timer 
+    clock_gettime(CLOCK_MONOTONIC, &start_time);
+
+    for (int i = 0; i < n_iter; i++) {
+        encodeDecode(c, msg, l_msg);
+    }
+
+    // end timer
+    clock_gettime(CLOCK_MONOTONIC, &end_time);
+
+    double elapsed_time = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec) / 1000000000.0;
+
+    printf("Time taken (microseconds): %f\n", elapsed_time * 1e6 / n_iter);
+
+    int nbits = encodeDecode(c, msg, l_msg);
 
     printf("Original message: ");
     for(int i = 0; i < l_msg; i ++){
@@ -58,7 +75,7 @@ int main(){
     printf("\nBitstream: ");
     print_bitstream(c->e->bitstream, c->e->l_bitstream);
 
-    printf("\nCompression ratio: %f\n", (float)l_msg * 4 / (float)c->e->l_bitstream);
+    printf("\nCompression ratio: %f\n", (float)l_msg * 4 / (float)nbits);
 
     return 0;
 }

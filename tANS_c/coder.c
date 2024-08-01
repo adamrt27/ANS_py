@@ -36,3 +36,23 @@ void decodeCoder(coder *c) {
     // decode the bitstream
     c->d = decode(c->e->bitstream, c->e->l_bitstream, c->d_table);
 }
+
+// encodes and decodes the message, returns the number of bits in the bitstream
+int encodeDecode(coder *c, uint8_t *msg, int l_msg) {
+    // encode the message
+    encodeCoder(c, msg, l_msg);
+
+    // decode the message
+    decodeCoder(c);
+
+    // check if the message is the same
+    for(int i = 0; i < c->e->l_msg; i ++){
+        if(c->e->msg[i] != c->d->msg[i]){
+            printf("Error: %d %d\n", c->e->msg[i], c->d->msg[i]);
+            return -1;
+        }
+    }
+
+    // return number of bits in the bitstream
+    return c->e->l_bitstream;
+}

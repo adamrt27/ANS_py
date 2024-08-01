@@ -15,5 +15,6 @@ typedef struct coder{
 coder *initCoder(int L, uint8_t *s_list, uint8_t *L_s, uint8_t n_sym); // initialize the coder
 void encodeCoder(coder *c, uint8_t *msg, int l_msg); // encode the message
 void decodeCoder(coder *c); // decode the bitstream
+int encodeDecode(coder *c, uint8_t *msg, int l_msg); // encodes and decodes the message, returns the number of bits in the bitstream
 
 #endif // CODER_H
