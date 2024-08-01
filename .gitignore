@@ -1,0 +1,19 @@
+# Package Building Files
+dist/
+build/
+
+# Python Caches
+__pycache__/
+
+# C output files
+*.so
+*.o 
+
+# Mac ouputs
+*.dSYM
+
+# vscode
+.vscode/
+
+# pytest
+.pytest_cache/
