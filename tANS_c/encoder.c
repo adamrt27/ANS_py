@@ -9,8 +9,8 @@
 #include <stdio.h>
 
 int sum_arr_to_ind(uint8_t *arr, uint8_t n_sym, uint8_t ind) {
-    if (ind >= n_sym) {
-        ind = n_sym - 1;
+    if (ind > n_sym) {
+        ind = n_sym;
     }
 
     int sum = 0;
@@ -131,9 +131,9 @@ void encode_step(encoder *e, encodeTable *table) {
     // update state
     int index = table->start[s] + e->state;
     if (index < 0){ // if index is negative
-        index = 256 + index;
-    } else if (index >= 256){ // if index is greater than 255
-        index = index - 256;
+        index = table->L + index;
+    } else if (index >= table->L){ // if index is greater than 255
+        index = index - table->L;
     }
     e->state = table->table[index];
 }
@@ -170,10 +170,10 @@ encoder *encode(uint8_t *msg, int l_msg, encodeTable *table){
     }
 
     // encode final state  
-    append_to_bitstream(e, e->state - 256, log2(table->L));
+    append_to_bitstream(e, e->state - table->L, log2(table->L));
 
     // encode original state
-    append_to_bitstream(e, state_orig - 256, log2(table->L));
+    append_to_bitstream(e, state_orig - table->L, log2(table->L));
 
     return e;
 }

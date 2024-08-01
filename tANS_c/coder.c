@@ -8,6 +8,7 @@
 #include "encoder.h"
 #include "decoder.h"
 #include "coder.h"
+#include "utils.h"
 
 coder *initCoder(int L, uint8_t *s_list, uint8_t *L_s, uint8_t n_sym) {
     coder *c = (coder *)malloc(sizeof(coder));
@@ -55,4 +56,11 @@ int encodeDecode(coder *c, uint8_t *msg, int l_msg) {
 
     // return number of bits in the bitstream
     return c->e->l_bitstream;
+}
+
+int encodeDecodePython(int L, uint8_t *s_list, uint8_t *L_s, uint8_t n_sym, uint8_t *msg, int l_msg) {
+    coder *c = initCoder(L, s_list, L_s, n_sym);
+    int res = encodeDecode(c, msg, l_msg);
+    free(c);
+    return res;
 }

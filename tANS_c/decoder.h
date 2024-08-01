@@ -42,8 +42,6 @@ void displayDecodeTable(decodeTable *table);
 int readBits(decoder *d, int nb);
 // helper function to decode a step
 void decodeStep(decoder *d, decodeTable *table);
-// helper function to decode the bitstream
-size_t num_bytes_uint16(uint16_t val);
 // function to decode the bitstream
 decoder *decode(uint8_t *bitstream, long l_bitstream, decodeTable *table);
 

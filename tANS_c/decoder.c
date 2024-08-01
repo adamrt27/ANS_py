@@ -10,7 +10,7 @@
 
 void createDecodeTable(decodeTable *table, uint8_t* symbol_spread) {
     // define next, which is a deep copy of L_s
-    uint8_t *next = (uint8_t *)malloc(256 * sizeof(uint8_t));
+    uint8_t *next = (uint8_t *)malloc(table->L * sizeof(uint8_t));
     for(int i = 0; i < table->n_sym; i++) {
         next[i] = table->L_s[i];
     }
@@ -99,12 +99,6 @@ void decodeStep(decoder *d, decodeTable *table){
     d->msg[d->l_msg - 1] = s_decode;
 }
 
-size_t num_bytes_uint16(uint16_t val){
-    if (val == 0) return 0;
-    if (val <= 0xFF) return 1;
-    return 2;
-}
-
 decoder *decode(uint8_t *bitstream, long l_bitstream, decodeTable *table){
     // initialize decoder d
     decoder *d = (decoder *)malloc(sizeof(decoder));
@@ -117,32 +111,11 @@ decoder *decode(uint8_t *bitstream, long l_bitstream, decodeTable *table){
     uint8_t state_orig;
     state_orig = readBits(d, (int)log2(table->L));
 
-    // printf("Log2(L): %d\n", (int)log2(table->L));
-
-    // printf("Original state: %d\n", state_orig);
-
-    // print_bitstream(d->bitstream, d->l_bitstream);
-
     // get the initial state, by reading log2(L) bits from the bitstream
     d->state = readBits(d, (int)log2(table->L));
 
-    // printf("Initial state: %d\n", d->state);
-
-    // print_bitstream(d->bitstream, d->l_bitstream);
-
     // iterate over bitstream decoding each symbol
     while((d->l_bitstream != 0) || d->state != state_orig){
-        // if (d->l_bitstream >= 0) {
-        //     printf("l_bitstream: %ld, bitstream: ", d->l_bitstream);
-        //     print_bitstream(d->bitstream, d->l_bitstream);
-        //     printf(" Message: ");
-        //     for (int i = 0; i < d->l_msg; i++) {
-        //         printf("%d ", d->msg[i]);
-        //     }
-        //     printf("\n");
-        //     printf("State: %d\n", d->state);
-
-        // }
 
         // reallocate d->msg and incrememnt l_msg
         d->l_msg ++;
