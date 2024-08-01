@@ -35,14 +35,14 @@ def encode_decode_test(data, L = 256, freq = None, fast=False, dtype = "np"):
     # get symbols
     s = list(set(data))
     
-    if freq is not None:
+    if freq is None:
         if dtype != "np":
             
             # get frequencies
             freq = [data.count(i) for i in s]
             
         else:
-            freq = [np.sum(data == i) for i in s]
+            freq = [np.sum(data == i) for i in s]       
         
     # rescale frequencies to power of 2
     freq = Utils.rescale_list_to_power_of_2(freq, L, max_sum_var = "L")
