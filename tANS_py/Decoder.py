@@ -209,7 +209,7 @@ class DecodeTable:
         # get the initial state, by reading log2(L) bits from the bitstream
         state, bitstream = self.read_bit(bitstream, int(math.log2(self.L)))
         state = int("".join(str(i) for i in state), 2) # convert bits to int
-                
+        
         # iterate over the bitstream, decoding each symbol
         # stops when the bitstream is empty and the state is equal to the original state
         # note: we do state_orig - self.L because the encoding table is from L to 2L
@@ -219,7 +219,38 @@ class DecodeTable:
             s_decode, state, bitstream = self.decode_step(state, bitstream)
             # append the decoded symbol to the list
             decoded.append(self.s_list[s_decode])
-            #print(state)
             
         # return the list of decoded symbols
         return decoded
+    
+if __name__ == "__main__":
+    s_list = [i for i in range(8)]
+    
+    L_s = [50,40,60,50,30,24,1,1]
+    
+    length = len(L_s)
+    
+    res = DecodeTable(256, s_list, L_s, fast = True)
+            
+    bitstream = [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0]
+    
+    import time
+    
+    n_iter = 100000
+    
+    # first warmup
+    for i in range(1000):
+        res.decode(bitstream)
+        
+    # start timer
+    start = time.time()
+    
+    for i in range(n_iter):
+        res.decode(bitstream)
+        
+    end = time.time()
+    
+    print(f"Time taken in microseconds: {(end - start) * 1e6 / n_iter}")
+    
+    print("Decoded:", res.decode(bitstream))
+    

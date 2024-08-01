@@ -136,3 +136,28 @@ class Coder:
         """
         res = self.decode(data)
         return "".join(res)
+    
+if __name__ == "__main__":
+    import time 
+    s_list = [i for i in range(16)]
+    
+    L_s = [19, 4, 8, 33, 8, 18, 4, 10, 19, 8, 30, 4, 8, 38, 26, 19]
+    
+    length = len(L_s)
+    
+    msg = [0,3,2,3,2,1,2,3,4,7,3,1,2,3,4,5,6,7, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
+    
+    c = Coder(256, s_list, L_s, fast = True)
+    
+    n_iter = 10000
+    
+    start_time = time.time()
+    for i in range(n_iter):
+        c.encode_decode(msg)
+    end_time = time.time()  
+    
+    out, bits = c.encode_decode(msg, verbose = False)
+    
+    print("Time taken (microseconds): ", (end_time - start_time)*10**6 / n_iter)
+    
+    print("Compression ratio: ", len(msg)*4/bits)

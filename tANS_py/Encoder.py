@@ -113,11 +113,11 @@ class Encoder:
         """
         
         r = int(math.log2(self.L * 2))
-        
+                
         nbBits = (state + self.nb[s]) >> r
                 
         bitstream, state = Encoder.use_bits(state, nbBits)
-        
+               
         state = self.table[self.start[s] + (state)]
         
         return bitstream, state
@@ -140,7 +140,7 @@ class Encoder:
         
         # save original state
         state_orig = state
-        
+                 
         for s in data:
             s_orig = s
             s = self.s_list.index(s)
@@ -154,3 +154,32 @@ class Encoder:
         bitstream.extend(Encoder.use_bits(state_orig - self.L, int(math.log2(self.L)))[0])
             
         return bitstream
+    
+if __name__ == "__main__":
+    s_list = [i for i in range(8)]
+    
+    L_s = [50,40,60,50,30,24,1,1]
+    
+    length = len(L_s)
+    
+    spread = [0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 5, 5, 5, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 5, 5, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 5, 5, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 5, 5, 7, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 5, 5, 5, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 5, 5, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 5, 5, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 5, 5, 6, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 5, 5, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 5, 5, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 5, 5]
+    
+    res = Encoder(256, s_list, L_s, spread)
+    
+    # calculate the time it takes, averaged over 10,000 runs
+    import time
+    
+    n_iter = 100000
+    
+    # warmup
+    for i in range(1000):
+        res.encode([0,1,2,3,4])
+    
+    start_time = time.time()
+    for i in range(10000):
+        res.encode([0,1,2,3,4])
+    end_time = time.time()
+    
+    print("Time taken in micro seconds: ", (end_time - start_time)*10**6/10000)
+    
+    print("Bitstream:",res.encode([0,1,2,3,4]))

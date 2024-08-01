@@ -2,15 +2,16 @@
 from . import Utils, Coder
 import numpy as np
 
-def encode(data, L = 1024, fast = False, dtype = 'np'):
+def encode(data, L = 256, freq = None, fast = False, dtype = 'np'):
     # get symbols
     s = list(set(data))
     
     # get frequencies
-    if dtype != "np":
-        freq = [data.count(i) for i in s]
-    else:
-        freq = np.sum(data == i for i in s)
+    if freq is None:
+        if dtype != "np":
+            freq = [data.count(i) for i in s]
+        else:
+            freq = np.sum(data == i for i in s)
     
     # rescale frequencies to power of 2
     freq = Utils.rescale_list_to_power_of_2(freq, L, max_sum_var = "L")
@@ -29,18 +30,19 @@ def decode(bitstream, coder, dtype = "np"):
         return np.asarray(coder.decode(bitstream))
     return coder.decode(bitstream)
 
-def encode_decode_test(data, L = 1024, fast=False, dtype = "np"):
+def encode_decode_test(data, L = 256, freq = None, fast=False, dtype = "np"):
     
     # get symbols
     s = list(set(data))
     
-    if dtype != "np":
-        
-        # get frequencies
-        freq = [data.count(i) for i in s]
-        
-    else:
-        freq = [np.sum(data == i) for i in s]
+    if freq is not None:
+        if dtype != "np":
+            
+            # get frequencies
+            freq = [data.count(i) for i in s]
+            
+        else:
+            freq = [np.sum(data == i) for i in s]
         
     # rescale frequencies to power of 2
     freq = Utils.rescale_list_to_power_of_2(freq, L, max_sum_var = "L")
