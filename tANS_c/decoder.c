@@ -74,11 +74,13 @@ int readBits(decoder *d, int nb){
         return 0;
     }
 
-    // get the nb LSB
-    int bits = d->cur_bitstream & ((1 << nb) - 1);
+    // get the nb MSB of the bitstream
+    int bits = get_n_bits(d->bitstream, d->l_bitstream - nb, nb, 1);
 
-    // update the bitstream by getting rid of the nb LSB
-    d->cur_bitstream = d->cur_bitstream >> nb;
+    bits = reverse_bits(bits, nb);
+
+    // update the bitstream to get rid of the nb MSB, by decrementing l_bitstream
+    d->l_bitstream -= nb;
 
     return bits;
 }
@@ -111,43 +113,35 @@ decoder *decode(uint8_t *bitstream, long l_bitstream, decodeTable *table){
     d->msg = (uint8_t *)malloc(sizeof(uint8_t));
     d->l_msg = 0;
 
-    // load the first two bytes from bitstream to cur_bitstream
-    if (l_bitstream >= 2) {
-        d->cur_bitstream = d->bitstream[0] + (d->bitstream[1] << 8);
-        d->l_bitstream -= 2;
-        d->bitstream += 2;
-    } else {
-        if (l_bitstream == 1) {
-            d->cur_bitstream = d->bitstream[0];
-            d->l_bitstream --;
-            d->bitstream += 1;
-        } else {
-            printf("Error: bitstream is empty\n");
-            return NULL;
-        }
-    }
-
     // get original state, by reading log2(L) bits from the bitstream
     uint8_t state_orig;
     state_orig = readBits(d, (int)log2(table->L));
 
+    printf("Log2(L): %d\n", (int)log2(table->L));
+
+    printf("Original state: %d\n", state_orig);
+
+    print_bitstream(d->bitstream, d->l_bitstream);
+
     // get the initial state, by reading log2(L) bits from the bitstream
     d->state = readBits(d, (int)log2(table->L));
 
+    printf("Initial state: %d\n", d->state);
+
+    print_bitstream(d->bitstream, d->l_bitstream);
+
     // iterate over bitstream decoding each symbol
-    while((d->l_bitstream != 0 && d->cur_bitstream != 0) || d->state != state_orig){
-        if (d->l_bitstream != 0) {
-            printf("l_bitstream: %ld, cur_bitstream: %d\n", d->l_bitstream, d->cur_bitstream);
-        }
-        // check if cur_bitstream can handle another byte
-        if (num_bytes_uint16(d->cur_bitstream) == 1 && d->l_bitstream > 0) {
-            d->cur_bitstream += (d->bitstream[0] << 8);
-            d->l_bitstream --;
-            d->bitstream += 1;
-        } else if (num_bytes_uint16(d->cur_bitstream) == 0 && d->l_bitstream > 0) {
-            d->cur_bitstream += (d->bitstream[0]);
-            d->l_bitstream --;
-            d->bitstream += 1;
+    while((d->l_bitstream != 0) || d->state != state_orig){
+        if (d->l_bitstream >= 0) {
+            printf("l_bitstream: %ld, bitstream: ", d->l_bitstream);
+            print_bitstream(d->bitstream, d->l_bitstream);
+            printf(" Message: ");
+            for (int i = 0; i < d->l_msg; i++) {
+                printf("%d ", d->msg[i]);
+            }
+            printf("\n");
+            printf("State: %d\n", d->state);
+
         }
 
         // reallocate d->msg and incrememnt l_msg
@@ -175,6 +169,8 @@ decoder *decode(uint8_t *bitstream, long l_bitstream, decodeTable *table){
 #include <time.h>
 
 int main() {
+
+    // TODO: BITSTREAM READING IS WRONG
     uint8_t *s_list = (uint8_t *)malloc(sizeof(uint8_t) * 256);
     for (int i = 0; i < 8; i++) {
         s_list[i] = i;
@@ -183,7 +179,16 @@ int main() {
 
     decodeTable *res = initDecodeTable(256, s_list, L_s, 8);
 
-    uint8_t bs[4] = {187, 174, 68, 2};
+    uint8_t bs[4] = {0b11011101, 0b01110101,0b00100010, 0b0100};
+
+    print_bitstream(bs, 3*8 + 4);
+
+    printf("Testing get_n_bits function\n");
+    printf("get_n_bits: %d\n", get_n_bits(bs, 3*8 + 4, 3, -1));
+    printf("get_n_bits: %d\n", get_n_bits(bs, 3*8 + 4 - 8, 6, 1));
+
+    print_bitstream(bs, 3*8 + 4);
+
 
     // long num_iter = 1000000;
 
@@ -224,4 +229,4 @@ int main() {
     free(res);
 
     return 0;
-}
+} 

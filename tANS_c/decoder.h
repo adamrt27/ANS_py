@@ -26,7 +26,6 @@ typedef struct decoder {
     uint8_t state;
     uint8_t *bitstream;
     long l_bitstream;           // the length of the bitstream
-    uint16_t cur_bitstream;     // the current 2 bytes from bitstream
     uint8_t *msg;
     int l_msg;                  // length of message
 } decoder;

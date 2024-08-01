@@ -8,31 +8,6 @@
 #include <time.h>
 #include <stdio.h>
 
-// Function to set a bit in the bitstream
-void set_bit(uint8_t *bitstream, size_t bit_pos) {
-    size_t byte_pos = bit_pos / 8;
-    size_t bit_offset = bit_pos % 8;
-    SET_BIT(bitstream[byte_pos], bit_offset);
-}
-
-// Function to get a bit from the bitstream
-int get_bit(uint8_t *bitstream, size_t bit_pos) {
-    size_t byte_pos = bit_pos / 8;
-    size_t bit_offset = bit_pos % 8;
-    return GET_BIT(bitstream[byte_pos], bit_offset);
-}
-
-// Function to print the bitstream
-void print_bitstream(uint8_t *bitstream, size_t num_bits) {
-    for (size_t i = 0; i < num_bits; ++i) {
-        printf("%d", get_bit(bitstream, i));
-        if ((i + 1) % 8 == 0) {
-            printf(" "); // Print a space every byte for readability
-        }
-    }
-    printf("\n");
-}
-
 int sum_arr_to_ind(uint8_t *arr, uint8_t n_sym, uint8_t ind) {
     if (ind >= n_sym) {
         ind = n_sym - 1;
@@ -203,7 +178,7 @@ encoder *encode(uint8_t *msg, int l_msg, encodeTable *table){
     return e;
 }
 
-/*
+
 int main(){
 
     uint8_t *s_list = (uint8_t *)malloc(sizeof(uint8_t) * 256);
@@ -271,4 +246,4 @@ int main(){
     printf("Time per run: %.6f pico seconds\n", elapsed_time * 1000000 / 10000);
 
     print_bitstream(e->bitstream, e->l_bitstream);
-} */
+} 

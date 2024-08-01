@@ -4,22 +4,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-// Bit manipulation functions
-
-// Define a macro for setting and getting bit positions
-#define SET_BIT(byte, bit) ((byte) |= (1 << (bit)))
-#define CLEAR_BIT(byte, bit) ((byte) &= ~(1 << (bit)))
-#define GET_BIT(byte, bit) (((byte) >> (bit)) & 1)
-
-// Function to set a bit in the bitstream
-void set_bit(uint8_t *bitstream, size_t bit_pos);
-
-// Function to get a bit from the bitstream
-int get_bit(uint8_t *bitstream, size_t bit_pos);
-
-// Function to print the bitstream
-void print_bitstream(uint8_t *bitstream, size_t num_bits);
-
 // Encoding
 
 // encode table struct
