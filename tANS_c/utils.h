@@ -28,4 +28,7 @@ void print_bitstream(uint8_t *bitstream, size_t num_bits);
 
 uint8_t *fast_spread(int L, uint8_t *L_s, uint8_t n_sym, int X, float step);
 
+// reverse array
+void reverse_array(uint8_t *array, size_t size);
+
 #endif // UTILS_H

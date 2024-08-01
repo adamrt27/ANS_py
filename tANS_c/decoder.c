@@ -117,32 +117,32 @@ decoder *decode(uint8_t *bitstream, long l_bitstream, decodeTable *table){
     uint8_t state_orig;
     state_orig = readBits(d, (int)log2(table->L));
 
-    printf("Log2(L): %d\n", (int)log2(table->L));
+    // printf("Log2(L): %d\n", (int)log2(table->L));
 
-    printf("Original state: %d\n", state_orig);
+    // printf("Original state: %d\n", state_orig);
 
-    print_bitstream(d->bitstream, d->l_bitstream);
+    // print_bitstream(d->bitstream, d->l_bitstream);
 
     // get the initial state, by reading log2(L) bits from the bitstream
     d->state = readBits(d, (int)log2(table->L));
 
-    printf("Initial state: %d\n", d->state);
+    // printf("Initial state: %d\n", d->state);
 
-    print_bitstream(d->bitstream, d->l_bitstream);
+    // print_bitstream(d->bitstream, d->l_bitstream);
 
     // iterate over bitstream decoding each symbol
     while((d->l_bitstream != 0) || d->state != state_orig){
-        if (d->l_bitstream >= 0) {
-            printf("l_bitstream: %ld, bitstream: ", d->l_bitstream);
-            print_bitstream(d->bitstream, d->l_bitstream);
-            printf(" Message: ");
-            for (int i = 0; i < d->l_msg; i++) {
-                printf("%d ", d->msg[i]);
-            }
-            printf("\n");
-            printf("State: %d\n", d->state);
+        // if (d->l_bitstream >= 0) {
+        //     printf("l_bitstream: %ld, bitstream: ", d->l_bitstream);
+        //     print_bitstream(d->bitstream, d->l_bitstream);
+        //     printf(" Message: ");
+        //     for (int i = 0; i < d->l_msg; i++) {
+        //         printf("%d ", d->msg[i]);
+        //     }
+        //     printf("\n");
+        //     printf("State: %d\n", d->state);
 
-        }
+        // }
 
         // reallocate d->msg and incrememnt l_msg
         d->l_msg ++;
@@ -161,63 +161,99 @@ decoder *decode(uint8_t *bitstream, long l_bitstream, decodeTable *table){
         decodeStep(d, table);
     }
 
+    // reverse the message
+    reverse_array(d->msg, d->l_msg);
+
     return d;
 }
 
-
-
 #include <time.h>
 
+/*
 int main() {
 
-    // TODO: BITSTREAM READING IS WRONG
-    uint8_t *s_list = (uint8_t *)malloc(sizeof(uint8_t) * 256);
-    for (int i = 0; i < 8; i++) {
-        s_list[i] = i;
-    }
-    uint8_t L_s[8] = {50, 40, 60, 50, 30, 24, 1, 1};
+    // uint8_t *s_list = (uint8_t *)malloc(sizeof(uint8_t) * 256);
+    // for (int i = 0; i < 8; i++) {
+    //     s_list[i] = i;
+    // }
+    // uint8_t L_s[8] = {49,39,59,49,29,23,4,4};
 
+    // uint8_t bs[6] = {0b10110100, 0b11011111, 0b10010001, 0b11011000, 0b11100101, 0b00000000};
+
+    // uint8_t l_bs = 5*8 + 4;
+
+    // read the info from file encoded_message.bin
+    FILE *f = fopen("encoded_message.bin", "rb");
+    if (f == NULL) {
+        printf("Error opening file\n");
+        return 1;
+    }
+
+    // get the length of the bitstream
+    long l_bs;
+    fread(&l_bs, sizeof(long), 1, f);
+
+    printf("Length of bitstream: %d\n", l_bs);
+
+    // get the number of symbols
+    uint8_t n_sym;
+    fread(&n_sym, sizeof(uint8_t), 1, f);
+
+    printf("Number of symbols: %d\n", n_sym);
+
+    // get the symbols
+    uint8_t *s_list = (uint8_t *)malloc(sizeof(uint8_t) * n_sym);
+    fread(s_list, sizeof(uint8_t), n_sym, f);
+
+    printf("Symbols: ");
+    for (int i = 0; i < n_sym; i++) {
+        printf("%d ", s_list[i]);
+    }
+
+    // get the L_s
+    uint8_t L_s[n_sym];
+    fread(L_s, sizeof(uint8_t), n_sym, f);
+
+    printf("\nL_s: ");
+    for (int i = 0; i < n_sym; i++) {
+        printf("%d ", L_s[i]);
+    }
+
+    // read the bitstream
+    uint8_t *bs = (uint8_t *)malloc(sizeof(uint8_t) * l_bs);
+    fread(bs, sizeof(uint8_t), l_bs, f);
+    fclose(f);
+
+
+    // make the decode table
     decodeTable *res = initDecodeTable(256, s_list, L_s, 8);
 
-    uint8_t bs[4] = {0b11011101, 0b01110101,0b00100010, 0b0100};
+    print_bitstream(bs, l_bs);
 
-    print_bitstream(bs, 3*8 + 4);
+    long num_iter = 1000000;
 
-    printf("Testing get_n_bits function\n");
-    printf("get_n_bits: %d\n", get_n_bits(bs, 3*8 + 4, 3, -1));
-    printf("get_n_bits: %d\n", get_n_bits(bs, 3*8 + 4 - 8, 6, 1));
+    // Warm-up iterations
+    for (int i = 0; i < 1000; i++) {
+        decoder *d = decode(bs, l_bs, res);
+    }
 
-    print_bitstream(bs, 3*8 + 4);
+    struct timespec start_time, end_time;
+    clock_gettime(CLOCK_MONOTONIC, &start_time);
 
+    decoder *d = NULL;
+    for (int i = 0; i < num_iter; i++) {
+        d = decode(bs, l_bs, res);
+    }
 
-    // long num_iter = 1000000;
+    clock_gettime(CLOCK_MONOTONIC, &end_time);
 
-    // // Warm-up iterations
-    // for (int i = 0; i < 1000; i++) {
-    //     decoder *d = decode(bs, 3*8 + 4, res);
-    //     free(d->msg); // Free allocated memory to avoid memory leaks
-    //     free(d);
-    // }
+    double elapsed_time = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec) / 1e9;
 
-    // struct timespec start_time, end_time;
-    // clock_gettime(CLOCK_MONOTONIC, &start_time);
+    printf("Elapsed time per iteration: %.6f mu s\n", (elapsed_time * 1e6) / num_iter);
 
-    // decoder *d = NULL;
-    // for (int i = 0; i < num_iter; i++) {
-    //     d = decode(bs, 3, res);
-    //     //free(d->msg); // Free allocated memory to avoid memory leaks
-    //     //free(d);
-    // }
+    d = decode(bs, l_bs, res);
 
-    // clock_gettime(CLOCK_MONOTONIC, &end_time);
-
-    // double elapsed_time = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec) / 1e9;
-
-    // printf("Elapsed time per iteration: %.6f microseconds\n", (elapsed_time * 1e6) / num_iter);
-
-    decoder *d = decode(bs, 3*8 + 4, res);
-
-    printf("Len of message: %d\n", d->l_bitstream);
+    printf("Len of message: %ld\n", d->l_bitstream);
     printf("Decoded message: ");
     for (int i = 0; i < d->l_msg; i++) {
         printf("%d ", d->msg[i]);
@@ -229,4 +265,4 @@ int main() {
     free(res);
 
     return 0;
-} 
+} */

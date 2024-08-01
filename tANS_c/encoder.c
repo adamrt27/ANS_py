@@ -178,14 +178,14 @@ encoder *encode(uint8_t *msg, int l_msg, encodeTable *table){
     return e;
 }
 
-
+/*
 int main(){
 
     uint8_t *s_list = (uint8_t *)malloc(sizeof(uint8_t) * 256);
     for(int i = 0; i < 8; i ++){
         s_list[i] = i;
     }
-    uint8_t L_s[8] = {50,40,60,50,30,24,1,1};
+    uint8_t L_s[8] = {49,39,59,49,29,23,4,4};
 
     int length = sizeof(L_s) / sizeof(L_s[0]); // Calculate the number of elements in the array
     int sum = 0;
@@ -199,51 +199,54 @@ int main(){
 
     encodeTable *res = initEncodeTable(256, s_list, L_s, 8);
 
-    // // print res->nb
-    // printf("nb: [");
-    // for(int i = 0; i < 8; i ++){
-    //     printf("%d, ", res->nb[i]);
-    // }
-    // // print start
-    // printf("\b\b]\nstart: [");
-    // for(int i = 0; i < 8; i ++){
-    //     printf("%d, ", res->start[i]);
-    // }
+    uint8_t n_sym = 8;
 
-    // // print k
-    // printf("\b\b]\nk: [");
-    // for(int i = 0; i < 8; i ++){
-    //     printf("%d, ", res->k[i]);
-    // }
+    uint8_t l_msg = 18;
 
-    // // print L_s
-    // printf("\b\b]\nL_s: [");
-    // for(int i = 0; i < 8; i ++){
-    //     printf("%d, ", res->L_s[i]);
-    // }
-    // printf("\b\b]\n");
+    uint8_t msg[18] = {0,3,2,3,2,1,2,3,4,7,3,1,2,3,4,5,6,7};
 
-    // // print spread
-    // uint8_t *sym_spread = fast_spread(res, 0, (int)((5.0/8.0) * res->L + 3));
+    long num_iter = 1000000;
 
-
-    //displayEncodeTable(res);
-
-    uint8_t msg[5] = {0,1,2,3,4};
-
-    // get time it takes to encode in pico seconds, averaged over 10,000 runs
     encoder *e;
 
-    clock_t start_time = clock();
-    for(int i = 0; i < 10000; i ++){
-        e = encode(msg, 5, res);
+    // Warm-up iterations
+    for (int i = 0; i < 1000; i++) {
+        e = encode(msg, l_msg, res);
     }
-    clock_t end_time = clock();
+
+    struct timespec start_time, end_time;
+    clock_gettime(CLOCK_MONOTONIC, &start_time);
+
+    for(int i = 0; i < num_iter; i ++){
+        e = encode(msg, l_msg, res);
+    }
+
+    clock_gettime(CLOCK_MONOTONIC, &end_time);
 
     // Calculate the elapsed time
-    double elapsed_time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
+    double elapsed_time = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec) / 1e9;
 
-    printf("Time per run: %.6f pico seconds\n", elapsed_time * 1000000 / 10000);
+    printf("Elapsed time per iteration: %.6f mu s\n", (elapsed_time * 1e6) / num_iter);
 
     print_bitstream(e->bitstream, e->l_bitstream);
-} 
+
+    // write the encoded message to a file, along with the length of the bitstream, symbols, and L_s
+    FILE *f = fopen("encoded_message.bin", "wb");
+    if (f == NULL) {
+        printf("Error opening file\n");
+        return 1;
+    }
+    // writing length of bitstream
+    fwrite(&e->l_bitstream, sizeof(long), 1, f); // write the length of the bitstream
+    // writing number of symbols
+    fwrite(&res->n_sym, sizeof(uint8_t), 1, f); // write the number of symbols
+    // writing symbols
+    fwrite(s_list, sizeof(uint8_t), res->n_sym, f); // write the symbols
+    // writing L_s
+    fwrite(L_s, sizeof(uint8_t), res->n_sym, f); // write the L_s
+    // writing the bitstream
+    fwrite(e->bitstream, sizeof(uint8_t), e->l_bitstream, f);
+    fclose(f);
+
+    return 0;
+}  */

@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+//* Bitstream functions
+
 // Function to set a bit in the bitstream
 void set_bit(uint8_t *bitstream, size_t bit_pos) {
     size_t byte_pos = bit_pos / 8;
@@ -55,6 +57,8 @@ void print_bitstream(uint8_t *bitstream, size_t num_bits) {
     printf("\n");
 }
 
+//* Spread Functions
+
 uint8_t *fast_spread(int L, uint8_t *L_s, uint8_t n_sym, int X, float step) {
 
     // Initialize the symbol spread array
@@ -73,4 +77,15 @@ uint8_t *fast_spread(int L, uint8_t *L_s, uint8_t n_sym, int X, float step) {
     }
 
     return sym_spread;
+}
+
+//* Other Functions
+
+// function to reverse an array
+void reverse_array(uint8_t *array, size_t size) {
+    for (size_t i = 0; i < size / 2; ++i) {
+        uint8_t temp = array[i];
+        array[i] = array[size - i - 1];
+        array[size - i - 1] = temp;
+    }
 }
