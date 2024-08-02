@@ -26,6 +26,7 @@ coder *initCoder(int L, uint8_t *s_list, uint8_t *L_s, uint8_t n_sym) {
     return c;
 }
 
+// Does Encoding with the Coder struct
 void encodeCoder(coder *c, uint8_t *msg, int l_msg) {
     // encode the message
     c->e = encode(msg, l_msg, c->e_table);
@@ -33,6 +34,7 @@ void encodeCoder(coder *c, uint8_t *msg, int l_msg) {
     // save all relevant values for decoding
 }
 
+// Does Decoding with the Coder struct
 void decodeCoder(coder *c) {
     // decode the bitstream
     c->d = decode(c->e->bitstream, c->e->l_bitstream, c->d_table);
@@ -58,7 +60,7 @@ int encodeDecode(coder *c, uint8_t *msg, int l_msg) {
     return c->e->l_bitstream;
 }
 
-int encodeDecodePython(int L, uint8_t *s_list, uint8_t *L_s, uint8_t n_sym, uint8_t *msg, int l_msg) {
+int encodeDecodeWithInit(int L, uint8_t *s_list, uint8_t *L_s, uint8_t n_sym, uint8_t *msg, int l_msg) {
     coder *c = initCoder(L, s_list, L_s, n_sym);
     int res = encodeDecode(c, msg, l_msg);
     free(c);

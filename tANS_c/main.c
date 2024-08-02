@@ -84,7 +84,7 @@ int main(){
         clock_gettime(CLOCK_MONOTONIC, &start_time);
 
         for(int i = 0; i < n_iter; i ++){
-            encodeDecodePython(L, s_list, L_s, 16, msg, l_msg);
+            encodeDecodeWithInit(L, s_list, L_s, 16, msg, l_msg);
         }
 
         // end timer
@@ -94,7 +94,7 @@ int main(){
 
         printf("Time taken with Python (microseconds): %f\n", elapsed_time_py * 1e6 / n_iter);
 
-        encodeDecodePython(L, s_list, L_s, 16, msg, l_msg);
+        encodeDecodeWithInit(L, s_list, L_s, 16, msg, l_msg);
 
         printf("Compression ratio: %f\n\n", (float)l_msg * 4 / (float)encodeDecode(c, msg, l_msg));
     }
