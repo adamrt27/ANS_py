@@ -117,6 +117,13 @@ def encodeDecodeWithInit(L: int, s_list: list, L_s: list, msg: list):
     
     return func(L, s_list_arr, L_s_arr, len(s_list), msg_arr, len(msg))
 
+def freeCoder(c: ctypes.POINTER(coder)):
+    func = lib.freeCoder
+    func.argtypes = [ctypes.POINTER(coder)]
+    func.restype = None
+    
+    return func(c)
+
 if __name__ == '__main__':
     L = 256
     s_list = [i for i in range(16)]
@@ -147,6 +154,8 @@ if __name__ == '__main__':
         encodeDecode(c, msg)
         
     end1 = time.time()
+    
+    freeCoder(c)
     
     print(f"Time taken (preinitialized): {(end1 - start1) * 1e3} miliseconds")
 
