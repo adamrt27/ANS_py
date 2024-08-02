@@ -65,6 +65,9 @@ encodeTable *initEncodeTable(int L, uint8_t *s_list, uint8_t *L_s, uint8_t n_sym
     table->table = (int *)malloc(L * sizeof(int)); 
     uint8_t *sym_spread = fast_spread(table->L, table->L_s, table->n_sym, 0, (int)((5.0/8.0) * table->L + 3));
     createEncodeTable(table, sym_spread);
+
+    free(sym_spread);
+
     return table;
 }
 
@@ -97,7 +100,7 @@ void append_to_bitstream(encoder *e, uint8_t bits, int nb) {
     for(int i = nb-1; i >= 0; i --){
         if (e->l_bitstream >= e->bitstream_capacity * 8) {
             e->bitstream_capacity *= 2;
-            e->bitstream = (uint8_t *)realloc(e->bitstream, e->bitstream_capacity);
+            e->bitstream = (uint8_t *)realloc(e->bitstream, sizeof(uint8_t) * e->bitstream_capacity);
             if (e->bitstream == NULL) {
                 perror("Failed to reallocate memory");
                 exit(EXIT_FAILURE);
@@ -156,6 +159,7 @@ encoder *encode(uint8_t *msg, int l_msg, encodeTable *table){
     int state_orig = e->state;
 
     // reset all values modified by encode_step
+    free(e->bitstream); // free the bitstream that was initialized
     e->bitstream = (uint8_t *)malloc(sizeof(uint8_t));
     e->bitstream_capacity = 1; // Initial capacity
     e->l_bitstream = 0;

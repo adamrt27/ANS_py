@@ -63,6 +63,26 @@ int encodeDecode(coder *c, uint8_t *msg, int l_msg) {
 int encodeDecodeWithInit(int L, uint8_t *s_list, uint8_t *L_s, uint8_t n_sym, uint8_t *msg, int l_msg) {
     coder *c = initCoder(L, s_list, L_s, n_sym);
     int res = encodeDecode(c, msg, l_msg);
-    free(c);
+
+    freeCoder(c);
+
     return res;
+}
+
+void freeCoder(coder *c) {
+    free(c->e_table->table);
+    free(c->e_table->k);
+    free(c->e_table->nb);
+    free(c->e_table->start);
+    free(c->e_table);
+
+    free(c->d_table->table);
+    free(c->d_table);
+
+    free(c->e->bitstream);
+    free(c->e);
+
+    free(c->d->msg);
+    free(c->d);
+    free(c);
 }

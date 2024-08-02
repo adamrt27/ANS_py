@@ -45,6 +45,8 @@ void createDecodeTable(decodeTable *table, uint8_t* symbol_spread) {
         // calculate new X value
         table->table[X].newX = (x_tmp << table->table[X].nb) - table->L;
     }
+
+    free(next);
 }
 
 decodeTable *initDecodeTable(int L, uint8_t *s_list, uint8_t *L_s, uint8_t n_sym) {
@@ -57,6 +59,9 @@ decodeTable *initDecodeTable(int L, uint8_t *s_list, uint8_t *L_s, uint8_t n_sym
     table->table = (decodeTableColumn *)malloc(L * sizeof(decodeTableColumn));
     uint8_t *sym_spread = fast_spread(table->L, table->L_s, table->n_sym, 0, (int)((5.0/8.0) * table->L + 3));
     createDecodeTable(table, sym_spread);
+
+    free(sym_spread);
+
     return table;
 }
 
@@ -119,16 +124,7 @@ decoder *decode(uint8_t *bitstream, long l_bitstream, decodeTable *table){
 
         // reallocate d->msg and incrememnt l_msg
         d->l_msg ++;
-        uint8_t *temp = (uint8_t *)realloc(d->msg, sizeof(uint8_t) * d->l_msg);
-        if (temp == NULL) {
-            printf("Memory reallocation failed\n");
-            free(d->bitstream);
-            free(d->msg);
-            free(d);
-            return NULL;
-        }
-        d->msg = temp;
-
+        d->msg = (uint8_t *)realloc(d->msg, sizeof(uint8_t) * (d->l_msg + 1));
 
         // decode a single symbol
         decodeStep(d, table);
